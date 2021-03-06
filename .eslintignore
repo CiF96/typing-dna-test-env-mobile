@@ -1,0 +1,7 @@
+**/*.md
+app.json
+package-lock.json
+package.json
+react-native.config.js
+src/package.json
+yarn.lock
