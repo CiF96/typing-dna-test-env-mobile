@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { observer } from "mobx-react";
 import _ from "lodash";
 import { useNavigation } from "@react-navigation/core";
@@ -15,10 +15,35 @@ import { StackNavigationProp } from "~/router/RouterTypes";
 import { constants } from "~/style/constants";
 import { shadow } from "~/utils/shadow";
 import { useLoginForm } from "./useLoginForm";
+//@ts-ignore
+import tdna from "typingdnarecorder-react-native";
 
 export const LoginForm = observer(function LoginForm() {
   const navigation = useNavigation<StackNavigationProp>();
   const { fields, isValid, submitForm } = useLoginForm();
+  // const [passwordNativeId, setPasswordNativeId] = useState(undefined);
+
+  console.log({ tdna });
+
+  useEffect(() => {
+    setTimeout(() => {
+      tdna.initialize();
+      tdna.start();
+    }, 1000);
+
+    return () => {
+      tdna.stop();
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   if (passwordNativeId != null) {
+  //     setTimeout(() => {
+  //       tdna.addTarget(passwordNativeId);
+  //     }, 2000);
+  //   }
+  // }, [passwordNativeId]);
+
   return (
     <LinearGradient colors={["#3b82f6", "white"]} style={{ flex: 1 }}>
       <ScrollView
@@ -66,6 +91,11 @@ export const LoginForm = observer(function LoginForm() {
           />
           <Spacer small />
           <TextInput
+            // ref={(ref) => {
+            //   if (ref != null) {
+            //     setPasswordNativeId(ref._nativeTag);
+            //   }
+            // }}
             label="password"
             keyboardType="default"
             autoCapitalize="none"
@@ -74,7 +104,24 @@ export const LoginForm = observer(function LoginForm() {
             {...fields.password}
           />
           <Spacer medium />
-          <Button title="sign in" disabled={!isValid} onPress={submitForm} />
+          <Button
+            title="sign in"
+            disabled={!isValid}
+            // onPress={() => {
+            //   tdna.getTypingPattern(
+            //     0,
+            //     0,
+            //     "",
+            //     0,
+            //     passwordNativeId,
+            //     false,
+            //     (tp) => {
+            //       console.log(tp);
+            //     }
+            //   );
+            // }}
+            onPress={submitForm}
+          />
         </View>
         <Spacer small />
         <Text colorDarkSoft alignCenter>
