@@ -4,7 +4,6 @@ import { AuthStore } from "./Auth";
 import { ConfigStore } from "./entities/config/ConfigStore";
 import { I18n } from "./I18n";
 import { UserStore } from "./entities/user/UserStore";
-import { NotificationStore } from "./entities/notification/NotificationStore";
 import { PersonStore } from "./entities/person/PersonStore";
 import { UIStore } from "./UIStore";
 
@@ -15,7 +14,6 @@ export const RootStore = types.model("RootStore", {
   userStore: types.optional(UserStore, {}),
   personStore: types.optional(PersonStore, {}),
   uiStore: types.optional(UIStore, {}),
-  notificationStore: types.optional(NotificationStore, {}),
 });
 
 export interface RootStoreInstance extends Instance<typeof RootStore> {}
