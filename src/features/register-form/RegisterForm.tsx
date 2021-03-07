@@ -1,7 +1,6 @@
 import React from "react";
 import { observer } from "mobx-react";
 import _ from "lodash";
-import { useNavigation } from "@react-navigation/core";
 import LinearGradient from "react-native-linear-gradient";
 
 import { ScrollView } from "react-native-gesture-handler";
@@ -11,14 +10,16 @@ import { Spacer } from "~/components/Spacer";
 import { Text } from "~/components/Text";
 import { TextInput } from "~/components/TextInput";
 import { View } from "~/components/View";
-import { StackNavigationProp } from "~/router/RouterTypes";
 import { constants } from "~/style/constants";
 import { shadow } from "~/utils/shadow";
-import { useLoginForm } from "./useLoginForm";
+import { useRegisterForm } from "./useRegisterForm";
+import { useNavigation } from "@react-navigation/core";
+import { StackNavigationProp } from "~/router/RouterTypes";
 
-export const LoginForm = observer(function LoginForm() {
+export const RegisterForm = observer(function RegisterForm() {
   const navigation = useNavigation<StackNavigationProp>();
-  const { fields, isValid, submitForm } = useLoginForm();
+  const { fields, isValid, submitForm } = useRegisterForm();
+
   return (
     <LinearGradient colors={["#3b82f6", "white"]} style={{ flex: 1 }}>
       <ScrollView
@@ -40,7 +41,7 @@ export const LoginForm = observer(function LoginForm() {
               />
             </View>
             <Text sizeExtraLarge weightBold>
-              sign in to your account
+              create your account
             </Text>
             <Text colorDarkSofter>
               or{" "}
@@ -48,16 +49,37 @@ export const LoginForm = observer(function LoginForm() {
                 weightBold
                 colorTheme
                 onPress={() => {
-                  navigation.navigate("RegisterScreen");
+                  navigation.navigate("LoginScreen");
                 }}
               >
-                create your account
+                sign in with an existing acount
               </Text>
             </Text>
           </View>
 
           <Spacer medium />
           <TextInput
+            label="first name"
+            keyboardType="default"
+            autoCapitalize="words"
+            autoCorrect={false}
+            {...fields.firstName}
+          />
+
+          <Spacer small />
+
+          <TextInput
+            label="last name"
+            keyboardType="default"
+            autoCapitalize="words"
+            autoCorrect={false}
+            {...fields.lastName}
+          />
+          <Spacer small />
+
+          <TextInput
+            nativeID="email"
+            placeholder="email"
             label="email"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -65,7 +87,10 @@ export const LoginForm = observer(function LoginForm() {
             {...fields.email}
           />
           <Spacer small />
+
           <TextInput
+            nativeID="password"
+            placeholder="password"
             label="password"
             keyboardType="default"
             autoCapitalize="none"
@@ -73,8 +98,23 @@ export const LoginForm = observer(function LoginForm() {
             secureTextEntry
             {...fields.password}
           />
+          <Spacer small />
+
+          <TextInput
+            label="confirm password"
+            keyboardType="default"
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry
+            {...fields.confirmPassword}
+          />
           <Spacer medium />
-          <Button title="sign in" disabled={!isValid} onPress={submitForm} />
+
+          <Button
+            title="create account"
+            disabled={!isValid}
+            onPress={submitForm}
+          />
         </View>
         <Spacer small />
         <Text colorDarkSoft alignCenter>

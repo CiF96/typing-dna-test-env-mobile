@@ -7,6 +7,16 @@ import * as yup from "yup";
 // import { useStore } from "~/mobx/utils/useStore";
 
 const validationSchema = yup.object({
+  firstName: yup
+    .string()
+    .required("First name is a required field")
+    .max(50, "First name is too long")
+    .trim(),
+  lastName: yup
+    .string()
+    .required("Last name is a required field")
+    .max(50, "Last name is too long")
+    .trim(),
   email: yup
     .string()
     .required("Email is required")
@@ -17,12 +27,16 @@ const validationSchema = yup.object({
     .string()
     .required("Password is required")
     .min(6, "Password too short"),
+  confirmPassword: yup
+    .string()
+    .required("Password confirmation is required")
+    .nullable(true)
+    .oneOf([yup.ref("password"), ""], "Passwords must match"),
 });
 
-export function useLoginForm() {
+export function useRegisterForm() {
   // const store = useStore();
-
-  // const [login] = useMutation(store.authStore.login, {
+  // const [register] = useMutation(store.authStore.register, {
   //   throwOnError: true,
   // });
 
@@ -37,8 +51,11 @@ export function useLoginForm() {
     values,
   } = useFormik({
     initialValues: {
-      email: __DEV__ ? `dominik@lloyds.design` : "",
-      password: __DEV__ ? "test1234" : "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
     validationSchema,
     async onSubmit(values, actions) {
@@ -63,11 +80,34 @@ export function useLoginForm() {
   });
 
   const refs = {
+    lastNameInput: useRef<TextInput>(null),
+    emailInput: useRef<TextInput>(null),
     passwordInput: useRef<TextInput>(null),
+    confirmPasswordInput: useRef<TextInput>(null),
   };
 
   const fields = {
+    firstName: {
+      value: values.firstName,
+      onChangeText: handleChange("firstName") as (text: string) => void,
+      onBlur: handleBlur("firstName") as () => void,
+      caption:
+        touched.firstName && errors.firstName ? errors.firstName : undefined,
+      error: Boolean(touched.firstName && errors.firstName),
+      onSubmitEditing: () => refs.lastNameInput?.current?.focus(),
+    },
+    lastName: {
+      ref: refs.lastNameInput,
+      value: values.lastName,
+      onChangeText: handleChange("lastName") as (text: string) => void,
+      onBlur: handleBlur("lastName") as () => void,
+      caption:
+        touched.lastName && errors.lastName ? errors.lastName : undefined,
+      error: Boolean(touched.lastName && errors.lastName),
+      onSubmitEditing: () => refs.emailInput?.current?.focus(),
+    },
     email: {
+      ref: refs.emailInput,
       value: values.email,
       onChangeText: handleChange("email") as (text: string) => void,
       onBlur: handleBlur("email") as () => void,
@@ -83,6 +123,18 @@ export function useLoginForm() {
       caption:
         touched.password && errors.password ? errors.password : undefined,
       error: Boolean(touched.password && errors.password), // our text input
+      onSubmitEditing: () => refs.confirmPasswordInput?.current?.focus(),
+    },
+    confirmPassword: {
+      ref: refs.confirmPasswordInput,
+      value: values.confirmPassword,
+      onChangeText: handleChange("confirmPassword") as (text: string) => void,
+      onBlur: handleBlur("confirmPassword") as () => void,
+      caption:
+        touched.confirmPassword && errors.confirmPassword
+          ? errors.confirmPassword
+          : undefined,
+      error: Boolean(touched.confirmPassword && errors.confirmPassword), // our text input
       onSubmitEditing: () => submitForm(),
     },
   };

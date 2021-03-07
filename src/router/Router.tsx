@@ -13,6 +13,7 @@ import { DropdownExample } from "~/screens/DropdownExample";
 import { LoginScreen } from "~/screens/LoginScreen";
 import { useStore } from "~/mobx/utils/useStore";
 import { Header } from "~/components/Header";
+import { RegisterScreen } from "~/screens/RegisterScreen";
 
 const Tabs = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -25,6 +26,11 @@ function renderAuthScreens() {
       <Stack.Screen
         name="LoginScreen"
         component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="RegisterScreen"
+        component={RegisterScreen}
         options={{ headerShown: false }}
       />
     </>
