@@ -19,13 +19,10 @@ const validationSchema = yup.object({
     .min(6, "Password too short"),
 });
 
-export function useLoginForm({ onSignInSuccess }: { onSignInSuccess(): any }) {
+export function useLoginForm() {
   const store = useStore();
   const [login] = useMutation(store.authStore.login, {
     throwOnError: true,
-    onSuccess: () => {
-      onSignInSuccess();
-    },
   });
 
   const {
@@ -46,6 +43,7 @@ export function useLoginForm({ onSignInSuccess }: { onSignInSuccess(): any }) {
     async onSubmit(values, actions) {
       try {
         await login(values);
+        //do something
       } catch (error) {
         console.warn("error logging in", error?.response?.status);
 

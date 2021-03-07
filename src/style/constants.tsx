@@ -3,7 +3,7 @@ import Color from "color";
 
 const window = Dimensions.get("window");
 
-const colorBackgroundTheme = "#FB6B15";
+const colorBackgroundTheme = "#3b82f6";
 const colorBackgroundLight = "rgba(255,255,255,1)";
 const colorBackgroundDark = "rgba(26,26,26,1)";
 const colorTextLight = "rgba(255, 255, 255, 0.9)";
@@ -40,7 +40,7 @@ export const constants = {
   colorBackgroundDarkLight: "rgb(30, 30, 30)",
   colorBackgroundDarkLighter: "rgb(33, 33, 33)",
 
-  colorTextTheme: "#FB6B15",
+  colorTextTheme: "#3b82f6",
   colorTextAccent: "#ba0000",
   colorTextSuccess: "#008556",
   colorTextWarning: "#E8A625",

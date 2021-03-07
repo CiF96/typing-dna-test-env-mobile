@@ -1,11 +1,11 @@
-import {QueryCache} from 'react-query';
+import { QueryCache } from "react-query";
 
 export function createQueryCache() {
   const queryCache = new QueryCache({
     defaultConfig: {
       queries: {
         cacheTime: 60 * 1000,
-        ...(__DEV__ ? {retry: false} : {}),
+        ...(__DEV__ ? { retry: false } : {}),
         structuralSharing: false,
         getFetchMore(lastPage: any) {
           // Laravel specific

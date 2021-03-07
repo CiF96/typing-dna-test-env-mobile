@@ -159,7 +159,7 @@ export const Button = forwardRef<TouchableOpacity, ButtonProps>(
     const [isLoading, setIsLoading] = useState(false);
 
     const height = resolveHeight();
-    const borderRadius = height / 2; // shared between the button and the spinner overlay
+    const borderRadius = 8; // shared between the button and the spinner overlay
     const style: TouchableOpacityProps["style"] = {
       height,
       flexDirection: "row",

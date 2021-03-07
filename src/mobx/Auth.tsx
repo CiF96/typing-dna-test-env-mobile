@@ -23,6 +23,13 @@ export const AuthStore = types
     activeUser: types.safeReference(User),
     token: types.maybe(types.string),
   })
+  .views((self) => {
+    return {
+      get isLoggedIn() {
+        return Boolean(self.token && self.activeUser);
+      },
+    };
+  })
   .actions((self) => ({
     processAuthUser(user: any) {
       getRoot(self).userStore.process(user);

@@ -1,6 +1,6 @@
-import {RootStore} from './RootStore';
-import {PersistenceStatic} from '~/services/createPersistence';
-import {HttpStatic} from '~/services/http/createHttp';
+import { RootStore } from "./RootStore";
+import { PersistenceStatic } from "~/services/createPersistence";
+import { HttpStatic } from "~/services/http/createHttp";
 
 export interface Environment {
   persistence: PersistenceStatic;
