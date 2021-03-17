@@ -1,10 +1,12 @@
-import { useRef } from "react";
-import { Alert, TextInput } from "react-native";
-import { useFormik } from "formik";
 import * as yup from "yup";
-// import { useMutation } from "react-query";
-
-// import { useStore } from "~/mobx/utils/useStore";
+import { Alert } from "react-native";
+import { useCallback, useRef } from "react";
+import { useFormik } from "formik";
+import { useMutation } from "react-query";
+import { useStore } from "~/mobx/utils/useStore";
+//@ts-ignore
+import tdna from "typingdnarecorder-react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 const validationSchema = yup.object({
   email: yup
@@ -20,11 +22,30 @@ const validationSchema = yup.object({
 });
 
 export function useLoginForm() {
-  // const store = useStore();
+  const store = useStore();
+  const emailNativeId = useRef(null);
+  const passwordNativeId = useRef(null);
 
-  // const [login] = useMutation(store.authStore.login, {
-  //   throwOnError: true,
-  // });
+  useFocusEffect(
+    useCallback(() => {
+      setTimeout(() => {
+        console.log("EFFECT");
+        tdna.initialize();
+        tdna.start();
+        tdna.addTarget(emailNativeId.current);
+        tdna.addTarget(passwordNativeId.current);
+      }, 2000);
+
+      return () => {
+        console.log("STOP EFFECT");
+        tdna.stop();
+      };
+    }, [])
+  );
+
+  const [login] = useMutation(store.authStore.login, {
+    throwOnError: true,
+  });
 
   const {
     errors,
@@ -35,54 +56,86 @@ export function useLoginForm() {
     submitForm,
     touched,
     values,
+    setValues,
   } = useFormik({
     initialValues: {
-      email: __DEV__ ? `dominik@lloyds.design` : "",
-      password: __DEV__ ? "test1234" : "",
+      email: "",
+      password: "",
     },
     validationSchema,
-    async onSubmit(values, actions) {
-      try {
-        // await login(values);
-        //do something
-      } catch (error) {
-        console.warn("error logging in", error?.response?.status);
+    onSubmit(values, actions) {
+      const emailAndPasswordValue = `${values.email}${values.password}`;
 
-        const statusCode = error?.response?.status;
+      tdna.getTypingPattern(
+        1,
+        emailAndPasswordValue.length,
+        emailAndPasswordValue,
+        0,
+        async (tp: string) => {
+          const emailAndPasswordTextId =
+            "mobile-auth-" + emailAndPasswordValue.length;
+          try {
+            const response = await login({
+              email: values.email,
+              password: values.password,
+              typing_pattern: tp,
+              pattern_type: "1",
+              device_type: "mobile",
+              text_id: emailAndPasswordTextId,
+            });
+            console.log({ response });
 
-        if (statusCode === 401) {
-          actions.setErrors({
-            email: "",
-            password: "Wrong email or password",
-          });
-        } else {
-          Alert.alert("Error", "Something went wrong");
+            setValues({ email: "", password: "" });
+            tdna.reset();
+
+            // navigation.navigate("Tabs");
+          } catch (error) {
+            console.warn("error logging in", { error });
+
+            const statusCode = error?.response?.status;
+
+            if (statusCode === 401) {
+              actions.setErrors({
+                email: "",
+                password: "Wrong email or password",
+              });
+            } else {
+              Alert.alert("Error", "Something went wrong");
+            }
+          }
         }
-      }
+      );
     },
   });
 
-  const refs = {
-    passwordInput: useRef<TextInput>(null),
-  };
-
   const fields = {
     email: {
+      ref: (ref: any) => {
+        if (ref != null) {
+          //@ts-ignore
+          emailNativeId.current = ref._nativeTag;
+        }
+      },
       value: values.email,
       onChangeText: handleChange("email") as (text: string) => void,
       onBlur: handleBlur("email") as () => void,
       caption: touched.email && errors.email ? errors.email : undefined,
-      error: Boolean(touched.email && errors.email), // our text input
-      onSubmitEditing: () => refs.passwordInput?.current?.focus(),
+      error: Boolean(touched.email && errors.email),
+      // onSubmitEditing: () => refs.passwordInput?.current?.focus(),
     },
     password: {
-      ref: refs.passwordInput,
+      ref: (ref: any) => {
+        if (ref != null) {
+          //@ts-ignore
+          passwordNativeId.current = ref._nativeTag;
+        }
+      },
       value: values.password,
       onChangeText: handleChange("password") as (text: string) => void,
       onBlur: handleBlur("password") as () => void,
       caption:
         touched.password && errors.password ? errors.password : undefined,
-      error: Boolean(touched.password && errors.password), // our text input
+      error: Boolean(touched.password && errors.password),
       onSubmitEditing: () => submitForm(),
     },
   };

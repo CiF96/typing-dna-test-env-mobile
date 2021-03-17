@@ -30,6 +30,8 @@ async function initialize() {
   const http = createHttp();
   const persistence = createPersistence();
   const store = await createStore({ http, persistence });
+  await store.authStore.watchToken();
+  await store.authStore.silentLogin();
 
   return { store, queryCache };
 }

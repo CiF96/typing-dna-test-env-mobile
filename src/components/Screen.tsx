@@ -61,7 +61,8 @@ export const Screen = React.forwardRef<ScrollView | View, ScreenProps>(
       if (props.colorBackgroundLightDarker) return C.colorBackgroundLightDarker;
       if (props.colorBackgroundDarkLight) return C.colorBackgroundDarkLight;
       if (props.colorBackgroundDarkLighter) return C.colorBackgroundDarkLighter;
-      return C.colorBackgroundLightDark;
+      return "#DBEAFE";
+      // return C.colorBackgroundLightDark;
     };
 
     const resolvePaddingBottom = () => {

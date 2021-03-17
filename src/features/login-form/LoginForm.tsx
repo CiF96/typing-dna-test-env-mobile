@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { observer } from "mobx-react";
 import _ from "lodash";
 import { useNavigation } from "@react-navigation/core";
@@ -15,26 +15,36 @@ import { StackNavigationProp } from "~/router/RouterTypes";
 import { constants } from "~/style/constants";
 import { shadow } from "~/utils/shadow";
 import { useLoginForm } from "./useLoginForm";
+import { useStore } from "~/mobx/utils/useStore";
 //@ts-ignore
-import tdna from "typingdnarecorder-react-native";
+// import tdna from "typingdnarecorder-react-native";
 
 export const LoginForm = observer(function LoginForm() {
   const navigation = useNavigation<StackNavigationProp>();
+  const store = useStore();
+  const enrollmentsLeft = store.authStore.enrollmentsLeft;
+  // const emailNativeId = useRef(null);
+  // const passwordNativeId = useRef(null);
+
+  // const [
+  //   emailAndPasswordTypingPattern,
+  //   setEmailAndPasswordTypingPattern,
+  // ] = useState("");
+
   const { fields, isValid, submitForm } = useLoginForm();
-  // const [passwordNativeId, setPasswordNativeId] = useState(undefined);
 
-  console.log({ tdna });
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     tdna.initialize();
+  //     tdna.start();
+  //     tdna.addTarget(emailNativeId.current);
+  //     tdna.addTarget(passwordNativeId.current);
+  //   }, 2000);
 
-  useEffect(() => {
-    setTimeout(() => {
-      tdna.initialize();
-      tdna.start();
-    }, 1000);
-
-    return () => {
-      tdna.stop();
-    };
-  }, []);
+  //   return () => {
+  //     tdna.stop();
+  //   };
+  // }, []);
 
   // useEffect(() => {
   //   if (passwordNativeId != null) {
@@ -64,25 +74,54 @@ export const LoginForm = observer(function LoginForm() {
                 source={require("~/assets/typingdna-logo.png")}
               />
             </View>
-            <Text sizeExtraLarge weightBold>
-              sign in to your account
-            </Text>
-            <Text colorDarkSofter>
-              or{" "}
-              <Text
-                weightBold
-                colorTheme
-                onPress={() => {
-                  navigation.navigate("RegisterScreen");
-                }}
-              >
-                create your account
-              </Text>
-            </Text>
+            {enrollmentsLeft > 0 ? (
+              <>
+                <Text sizeExtraLarge weightBold>
+                  enroll new typing pattern
+                </Text>
+                <Spacer extraSmall />
+                <Text sizeSmall alignCenter>
+                  Enrollments left before verification -{" "}
+                  <Text
+                    weightBold
+                    sizeSmall
+                    style={{ color: "green" }}
+                    alignCenter
+                  >
+                    {enrollmentsLeft}
+                  </Text>
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text sizeExtraLarge weightBold>
+                  sign in to your account
+                </Text>
+                <Text colorDarkSofter>
+                  or{" "}
+                  <Text
+                    weightBold
+                    colorTheme
+                    onPress={() => {
+                      navigation.navigate("RegisterScreen");
+                    }}
+                  >
+                    create your account
+                  </Text>
+                </Text>
+              </>
+            )}
           </View>
+          <Spacer medium />
 
           <Spacer medium />
           <TextInput
+            // ref={(ref) => {
+            //   if (ref != null) {
+            //     //@ts-ignore
+            //     emailNativeId.current = ref._nativeTag;
+            //   }
+            // }}
             label="email"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -93,7 +132,8 @@ export const LoginForm = observer(function LoginForm() {
           <TextInput
             // ref={(ref) => {
             //   if (ref != null) {
-            //     setPasswordNativeId(ref._nativeTag);
+            //     //@ts-ignore
+            //     passwordNativeId.current = ref._nativeTag;
             //   }
             // }}
             label="password"
@@ -105,22 +145,36 @@ export const LoginForm = observer(function LoginForm() {
           />
           <Spacer medium />
           <Button
-            title="sign in"
+            title={enrollmentsLeft > 0 ? "enroll" : "sign in"}
             disabled={!isValid}
-            // onPress={() => {
+            onPress={submitForm}
+
+            // onPress={async () => {
+            //   const emailAndPasswordValue = `${fields.email.value}${fields.password.value}`;
+
             //   tdna.getTypingPattern(
+            //     1,
+            //     emailAndPasswordValue.length,
+            //     emailAndPasswordValue,
             //     0,
-            //     0,
-            //     "",
-            //     0,
-            //     passwordNativeId,
-            //     false,
-            //     (tp) => {
-            //       console.log(tp);
+            //     (tp: string) => {
+            //       console.log({ emailAndPassword: tp });
+            //       setEmailAndPasswordTypingPattern(tp);
             //     }
             //   );
+
+            //   // tdna.getTypingPattern(
+            //   //   1,
+            //   //   emailAndPasswordValue.length,
+            //   //   emailAndPasswordValue,
+            //   //   0,
+            //   //   (tp: string) => {
+            //   //     console.log({ password: tp });
+            //   //     setPasswordTypingPattern(tp);
+            //   //   }
+            //   // );
+            //   await submitForm();
             // }}
-            onPress={submitForm}
           />
         </View>
         <Spacer small />

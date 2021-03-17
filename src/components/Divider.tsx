@@ -5,22 +5,22 @@ import { View } from "./View";
 
 export interface DividerProps {
   vertical?: boolean;
-  width?: number;
+  thickness?: number;
   color?: ViewStyle["borderColor"];
 }
 
 export const Divider = ({
   vertical,
-  width = StyleSheet.hairlineWidth,
-  color = constants.colorBackgroundLightDark,
+  thickness = StyleSheet.hairlineWidth,
+  color = constants.colorBackgroundLightDarker,
 }: DividerProps) => {
   return (
     <View
       style={{
         width: vertical ? 1 : "100%",
-        height: vertical ? "100%" : 1,
+        height: vertical ? "100%" : 0,
         borderColor: color,
-        borderWidth: width,
+        borderWidth: thickness,
       }}
     />
   );

@@ -30,7 +30,7 @@ function useStyles({ shouldShowShadow }: { shouldShowShadow: boolean }) {
       container: shouldShowShadow ? { ...shadow(3) } : {},
       headerContainer: {
         height: headerHeight,
-        backgroundColor: C.colorBackgroundLight,
+        backgroundColor: C.colorBackgroundTheme,
         justifyContent: "space-between",
         paddingHorizontal: constants.spacingMedium,
       },
@@ -89,14 +89,14 @@ export const Header = observer(function Header({
                 style={S.backButton}
                 name="arrow-left"
                 size={24}
-                color={C.colorTextDark}
+                color={C.colorTextLight}
               />
             </TouchableOpacity>
           )}
           {HeaderLeft}
           <Spacer small />
           <Text
-            colorDark
+            colorLight
             sizeLarge
             weightBold
             style={S.titleText}

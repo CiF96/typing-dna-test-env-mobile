@@ -9,7 +9,6 @@ export interface Environment {
 
 export async function createStore(environment: Environment) {
   const rootStore = RootStore.create({}, environment);
-  await rootStore.authStore.watchToken();
 
   return rootStore;
 }

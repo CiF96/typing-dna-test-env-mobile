@@ -22,6 +22,7 @@ export const AuthStore = types
   .model("AuthStore", {
     activeUser: types.safeReference(User),
     token: types.maybe(types.string),
+    enrollmentsLeft: types.optional(types.number, 0),
   })
   .views((self) => {
     return {
@@ -31,9 +32,17 @@ export const AuthStore = types
     };
   })
   .actions((self) => ({
-    processAuthUser(user: any) {
-      getRoot(self).userStore.process(user);
-      if (user.token !== undefined) self.token = user.token;
+    updateEnrollmentsLeft({
+      numberOfEnrollments,
+    }: {
+      numberOfEnrollments: number;
+    }) {
+      self.enrollmentsLeft = numberOfEnrollments;
+    },
+    processAuthUser({ user, token }: { user: any; token: string }) {
+      const root = getRoot(self);
+      root.userStore.process(user);
+      if (token !== undefined) self.token = token;
       self.activeUser = user.id;
       return self.activeUser;
     },
@@ -43,8 +52,9 @@ export const AuthStore = types
       const env = getEnv(self);
 
       try {
-        const { data: user }: AxiosResponse = yield env.http.get("/me");
-        self.processAuthUser(user);
+        if (!self.token) return;
+        const response: AxiosResponse = yield env.http.get("/me");
+        self.processAuthUser(response.data);
         return true;
       } catch (error) {
         console.log("error in silent login", error.message);
@@ -55,58 +65,99 @@ export const AuthStore = types
 
     logout() {
       self.token = undefined;
+      self.activeUser = undefined;
     },
-
-    changePassword: flow(function* changePassword(params: {
-      passwordOld: string;
-      password: string;
-    }): any {
+  }))
+  .actions((self) => ({
+    login: flow<
+      Response<{
+        user: UserInstance;
+        typing_dna: any;
+        enrollments_left: number;
+      }>,
+      [
+        {
+          email: string;
+          password: string;
+          typing_pattern: string;
+          device_type: "mobile" | "desktop";
+          pattern_type: "0" | "1" | "2";
+          text_id: string;
+        }
+      ]
+    >(function* login(params): any {
       const env = getEnv(self);
-      const response = yield env.http.patch("/me/password", {
-        password_old: params.passwordOld,
-        password: params.password,
-        password_confirmation: params.password,
+
+      const response: AxiosResponse = yield env.http.post("/login", params);
+      const messageCode = response.data.typing_dna.message_code;
+      const shouldAuthenticate = messageCode === 1;
+      const shouldUpdateEnrollments = messageCode === 1 || messageCode === 10;
+
+      console.log({
+        response,
+        messageCode,
+        shouldAuthenticate,
+        shouldUpdateEnrollments,
       });
 
-      self.processAuthUser(response.data);
+      if (shouldAuthenticate) {
+        response.data.user = self.processAuthUser({
+          user: response.data.user,
+          token: response.data.token,
+        });
+      }
+
+      if (shouldUpdateEnrollments) {
+        self.updateEnrollmentsLeft({
+          numberOfEnrollments: response.data.enrollments_left,
+        });
+      }
 
       return response;
     }),
-  }))
-  .actions((self) => ({
-    login: flow<Response<UserInstance>, [{ email: string; password: string }]>(
-      function* login(params): any {
-        const env = getEnv(self);
-
-        const response: AxiosResponse = yield env.http.post("/login", params);
-
-        response.data.data = self.processAuthUser(response.data.data);
-        return response.data;
-      }
-    ),
 
     register: flow<
-      Response<UserInstance>,
-      [{ email: string; phone: string; password: string }]
+      Response<{
+        user: UserInstance;
+        typing_dna: any;
+        enrollments_left: number;
+      }>,
+      [
+        {
+          name: string;
+          last_name: string;
+          email: string;
+          password: string;
+          password_confirmation: string;
+          typing_pattern: string;
+          device_type: "mobile" | "desktop";
+          pattern_type: "0" | "1" | "2";
+          text_id: string;
+        }
+      ]
     >(function* register(params): any {
       const env = getEnv(self);
       const response: AxiosResponse = yield env.http.post(`/register`, params);
-      response.data.data = self.processAuthUser(response.data.data);
+      const messageCode = response.data.typing_dna.message_code;
+      // const shouldAuthenticate = messageCode === 1;
+      const shouldUpdateEnrollments = messageCode === 1 || messageCode === 10;
 
-      return response.data;
+      console.log({
+        response,
+        messageCode,
+        shouldUpdateEnrollments,
+      });
+
+      if (shouldUpdateEnrollments) {
+        self.updateEnrollmentsLeft({
+          numberOfEnrollments: response.data.enrollments_left,
+        });
+      }
+
+      return response;
     }),
 
-    updateProfile: flow(function* updateProfile(params: { name: string }): any {
-      const env = getEnv(self);
-
-      const response: AxiosResponse = yield env.http.post(`/me`, params);
-
-      response.data.data = self.processAuthUser(response.data.data);
-
-      return response.data;
-    }),
-
-    watchToken: flow(function* afterAttach(): any {
+    watchToken: flow(function* watchToken(): any {
       const env = getEnv(self);
 
       // sync token to api and persistence
@@ -119,11 +170,7 @@ export const AuthStore = types
       });
 
       autorun(() => {
-        if (self.token === undefined) {
-          delete env.http.defaults.headers["Authorization"];
-        } else {
-          env.http.defaults.headers["Authorization"] = `Bearer ${self.token}`;
-        }
+        env.http.setToken(self.token);
       });
     }),
   }));
