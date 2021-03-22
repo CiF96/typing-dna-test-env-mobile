@@ -157,6 +157,42 @@ export const AuthStore = types
       return response;
     }),
 
+    readTypingPatternData: flow<
+      Response<{ typing_dna: any; enrollments_left: number }>,
+      [
+        {
+          user_id: string;
+          typing_pattern: string;
+          device_type: "mobile" | "desktop";
+          pattern_type: "0" | "1" | "2";
+          text_id: string;
+        }
+      ]
+    >(function* readTypingPatternData(params): any {
+      const env = getEnv(self);
+      const response: AxiosResponse = yield env.http.post(
+        "/get-typing-pattern-data",
+        params
+      );
+      const messageCode = response.data.typing_dna.message_code;
+
+      const shouldUpdateEnrollments = messageCode === 1 || messageCode === 10;
+
+      console.log({
+        response,
+        messageCode,
+        shouldUpdateEnrollments,
+      });
+
+      if (shouldUpdateEnrollments) {
+        self.updateEnrollmentsLeft({
+          numberOfEnrollments: response.data.enrollments_left,
+        });
+      }
+
+      return response;
+    }),
+
     watchToken: flow(function* watchToken(): any {
       const env = getEnv(self);
 

@@ -6,6 +6,8 @@ import { useStore } from "~/mobx/utils/useStore";
 //@ts-ignore
 import tdna from "typingdnarecorder-react-native";
 import { useFocusEffect } from "@react-navigation/core";
+import { getStringHash } from "~/mobx/utils/getStringHash";
+import { useAlert } from "~/hooks/useAlert";
 
 const validationSchema = yup.object({
   emailRecipient: yup
@@ -20,15 +22,11 @@ const validationSchema = yup.object({
 
 export function useEmailForm() {
   const store = useStore();
+  const alert = useAlert();
   const emailRecipientNativeId = useRef(null);
   const emailSubjectNativeId = useRef(null);
   const emailTextNativeId = useRef(null);
   const emailTextRequirement = 120;
-
-  // const [
-  //   emailAndPasswordTypingPattern,
-  //   setEmailAndPasswordTypingPattern,
-  // ] = useState("");
 
   useEffect(() => {
     // DEV SOLUTION FOR FAST REFRESH REMOVE LATER
@@ -44,22 +42,25 @@ export function useEmailForm() {
 
         tdna.initialize();
         tdna.start();
-        tdna.addTarget(emailRecipientNativeId.current);
-        tdna.addTarget(emailSubjectNativeId.current);
+
         tdna.addTarget(emailTextNativeId.current);
       }, 2000);
 
       return () => {
         console.warn("STOP EFFECT");
-
+        store.authStore.updateEnrollmentsLeft({ numberOfEnrollments: 0 });
         tdna.stop();
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
   );
 
-  const [sendEmail] = useMutation(store.authStore.login, {
-    throwOnError: true,
-  });
+  const [readTypingPatternData] = useMutation(
+    store.authStore.readTypingPatternData,
+    {
+      throwOnError: true,
+    }
+  );
 
   const {
     errors,
@@ -70,6 +71,7 @@ export function useEmailForm() {
     submitForm,
     touched,
     values,
+    setValues,
   } = useFormik({
     initialValues: {
       emailRecipient: "",
@@ -78,20 +80,64 @@ export function useEmailForm() {
     },
     validationSchema,
     onSubmit(values, actions) {
-      console.log({ sendEmail, values, actions });
-      tdna.getTypingPattern(0, 0, "", 0, async (tp: string) => {
-        try {
-          console.warn({ email: tp });
-        } catch (error) {
-          console.warn("error logging in", { error });
+      console.log({ actions });
+      const textId = getStringHash(values.emailText);
+      tdna.getTypingPattern(
+        0,
+        values.emailText.length,
+        "",
+        0,
+        async (tp: string) => {
+          const emailTextId =
+            textId.toString() + "-email-" + values.emailText.length;
+
+          try {
+            if (store.authStore.activeUser == null) {
+              throw new Error("DEV - active user is undefined or null");
+            }
+            await readTypingPatternData({
+              user_id: store.authStore.activeUser?.id,
+              typing_pattern: tp,
+              device_type: "mobile",
+              pattern_type: "0",
+              text_id: emailTextId,
+            });
+            const enrollmentsLeft = store.authStore.enrollmentsLeft;
+
+            console.log({ enrollmentsLeft });
+
+            if (enrollmentsLeft > 0) {
+              alert(
+                "Success",
+                `You have successfully enrolled an any-text pattern.\nEnrollments left before verification: ${enrollmentsLeft}`
+              );
+              setValues({
+                emailRecipient: "",
+                emailSubject: "",
+                emailText: "",
+              });
+              return;
+            }
+
+            alert("Success", "You have been successfully verified");
+            setValues({
+              emailRecipient: "",
+              emailSubject: "",
+              emailText: "",
+            });
+          } catch (error) {
+            console.warn("error logging in", { error });
+          }
         }
-      });
+      );
     },
   });
 
   const [emailTextLeft, setEmailTextLeft] = useState<number>(
     120 - values.emailText.length
   );
+
+  //TODO: MAKNI NEPOTREBNE FIELDOVE SUBJECT I TO - PREIMENUJ TO U ANY TEXT FORM ILI SLICNO
 
   const fields = {
     emailRecipient: {

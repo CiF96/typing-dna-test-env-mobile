@@ -57,7 +57,7 @@ export const Router = observer(() => {
           }}
         >
           <Icon
-            name="account"
+            name="logout"
             size={24}
             color={constants.colorBackgroundLight}
           />
@@ -77,6 +77,7 @@ export const Router = observer(() => {
               {() => {
                 return (
                   <Tabs.Navigator
+                    initialRouteName="Email"
                     tabBarOptions={{
                       tabStyle: {
                         backgroundColor: constants.colorBackgroundTheme,

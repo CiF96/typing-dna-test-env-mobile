@@ -8,6 +8,7 @@ import { useNavigation } from "@react-navigation/core";
 //@ts-ignore
 import tdna from "typingdnarecorder-react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { getStringHash } from "~/mobx/utils/getStringHash";
 
 const validationSchema = yup.object({
   firstName: yup
@@ -46,7 +47,6 @@ export function useRegisterForm() {
   useFocusEffect(
     useCallback(() => {
       setTimeout(() => {
-        console.log("EFFECT");
         tdna.initialize();
         tdna.start();
         tdna.addTarget(emailNativeId.current);
@@ -54,7 +54,6 @@ export function useRegisterForm() {
       }, 2000);
 
       return () => {
-        console.log("STOP EFFECT");
         tdna.stop();
       };
     }, [])
@@ -84,18 +83,18 @@ export function useRegisterForm() {
     validationSchema,
     onSubmit(values, actions) {
       const emailAndPasswordValue = `${values.email}${values.password}`;
-
+      const textId = getStringHash(emailAndPasswordValue);
       tdna.getTypingPattern(
         1,
         emailAndPasswordValue.length,
         emailAndPasswordValue,
-        0,
+        textId,
         async (tp: string) => {
           const emailAndPasswordTextId =
-            "mobile-auth-" + emailAndPasswordValue.length;
+            textId.toString() + "-auth-" + emailAndPasswordValue.length;
 
           try {
-            const response = await register({
+            await register({
               name: values.firstName,
               last_name: values.lastName,
               email: values.email,
@@ -106,7 +105,6 @@ export function useRegisterForm() {
               device_type: "mobile",
               text_id: emailAndPasswordTextId,
             });
-            console.log({ response });
 
             navigation.navigate("LoginScreen");
           } catch (error) {

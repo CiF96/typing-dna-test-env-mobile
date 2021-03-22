@@ -19,6 +19,7 @@ import { KeyboardAvoidingView } from "./components/KeyboardAvoidingView";
 import { Platform } from "react-native";
 import { createQueryCache } from "./services/createQueryCache";
 import { Splash } from "./features/splash/Splash";
+import { AlertProvider } from "./components/AlertProvider";
 
 async function initialize() {
   dayjs.extend(utc);
@@ -61,7 +62,9 @@ export function AppEntry() {
                 style={{ flex: 1 }}
               >
                 <ModalProvider>
-                  <Router />
+                  <AlertProvider>
+                    <Router />
+                  </AlertProvider>
                 </ModalProvider>
               </KeyboardAvoidingView>
             </SafeAreaProvider>
