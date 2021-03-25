@@ -12,10 +12,17 @@ export type UIStoreSnapshotOut = SnapshotOut<typeof UIStore>;
 export const UIStore = types
   .model("UIStore", {
     safeAreaBackgroundColor: C.colorBackgroundTheme,
+    selectedEnrollmentPositionId: types.optional(
+      types.maybe(types.number),
+      undefined
+    ),
   })
   .actions((self) => ({
     setSafeAreaBackgroundColor(backgroundColor: string) {
       self.safeAreaBackgroundColor = backgroundColor;
+    },
+    setEnrollmentPosition(enrollmentPositionId: number | undefined) {
+      self.selectedEnrollmentPositionId = enrollmentPositionId;
     },
   }))
   .actions((self) => {

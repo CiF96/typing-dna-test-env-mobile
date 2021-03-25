@@ -79,39 +79,21 @@ export const AuthStore = types
         {
           email: string;
           password: string;
-          typing_pattern: string;
-          device_type: "mobile" | "desktop";
-          pattern_type: "0" | "1" | "2";
-          text_id: string;
         }
       ]
     >(function* login(params): any {
       const env = getEnv(self);
 
       const response: AxiosResponse = yield env.http.post("/login", params);
-      const messageCode = response.data.typing_dna.message_code;
-      const shouldAuthenticate = messageCode === 1;
-      const shouldUpdateEnrollments = messageCode === 1 || messageCode === 10;
 
       console.log({
         response,
-        messageCode,
-        shouldAuthenticate,
-        shouldUpdateEnrollments,
       });
 
-      if (shouldAuthenticate) {
-        response.data.user = self.processAuthUser({
-          user: response.data.user,
-          token: response.data.token,
-        });
-      }
-
-      if (shouldUpdateEnrollments) {
-        self.updateEnrollmentsLeft({
-          numberOfEnrollments: response.data.enrollments_left,
-        });
-      }
+      response.data.user = self.processAuthUser({
+        user: response.data.user,
+        token: response.data.token,
+      });
 
       return response;
     }),
@@ -129,30 +111,20 @@ export const AuthStore = types
           email: string;
           password: string;
           password_confirmation: string;
-          typing_pattern: string;
-          device_type: "mobile" | "desktop";
-          pattern_type: "0" | "1" | "2";
-          text_id: string;
         }
       ]
     >(function* register(params): any {
       const env = getEnv(self);
       const response: AxiosResponse = yield env.http.post(`/register`, params);
-      const messageCode = response.data.typing_dna.message_code;
-      // const shouldAuthenticate = messageCode === 1;
-      const shouldUpdateEnrollments = messageCode === 1 || messageCode === 10;
 
       console.log({
         response,
-        messageCode,
-        shouldUpdateEnrollments,
       });
 
-      if (shouldUpdateEnrollments) {
-        self.updateEnrollmentsLeft({
-          numberOfEnrollments: response.data.enrollments_left,
-        });
-      }
+      response.data.user = self.processAuthUser({
+        user: response.data.user,
+        token: response.data.token,
+      });
 
       return response;
     }),
@@ -166,29 +138,52 @@ export const AuthStore = types
           device_type: "mobile" | "desktop";
           pattern_type: "0" | "1" | "2";
           text_id: string;
+          selected_position: number;
         }
       ]
     >(function* readTypingPatternData(params): any {
       const env = getEnv(self);
+      const root = getRoot(self);
+      const enrolledPosition = root.uiStore.selectedEnrollmentPositionId;
       const response: AxiosResponse = yield env.http.post(
-        "/get-typing-pattern-data",
-        params
+        "/typing-pattern-data",
+        { enrolled_position: enrolledPosition, ...params }
       );
+      console.log({
+        response,
+      });
+
       const messageCode = response.data.typing_dna.message_code;
 
       const shouldUpdateEnrollments = messageCode === 1 || messageCode === 10;
-
-      console.log({
-        response,
-        messageCode,
-        shouldUpdateEnrollments,
-      });
 
       if (shouldUpdateEnrollments) {
         self.updateEnrollmentsLeft({
           numberOfEnrollments: response.data.enrollments_left,
         });
       }
+
+      return response;
+    }),
+
+    deleteUserTypingPatterns: flow<
+      Response<{ typing_dna: any; enrollments_left: number }>,
+      [
+        {
+          user_id: string;
+          device: "mobile" | "desktop" | "all";
+        }
+      ]
+    >(function* deleteUserTypingPatterns(params): any {
+      const env = getEnv(self);
+      const response: AxiosResponse = yield env.http.post(
+        "/delete-user-typing-patterns",
+        params
+      );
+
+      console.log({
+        response,
+      });
 
       return response;
     }),

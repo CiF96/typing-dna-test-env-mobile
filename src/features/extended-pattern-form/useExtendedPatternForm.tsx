@@ -1,5 +1,5 @@
 import * as yup from "yup";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import { useMutation } from "react-query";
 import { useStore } from "~/mobx/utils/useStore";
@@ -13,10 +13,11 @@ const validationSchema = yup.object({
   quoteText: yup.string().required("Quote is required").trim(),
 });
 
-export function useRandomTextForm() {
+export function useExtendedPatternForm() {
   const store = useStore();
   const alert = useAlert();
   const quoteTextNativeId = useRef(null);
+  const [position, setPosition] = useState<number>(1);
 
   // const [
   //   emailAndPasswordTypingPattern,
@@ -84,7 +85,7 @@ export function useRandomTextForm() {
         quote.length,
         quote,
         textId,
-        textId,
+        quoteTextNativeId.current,
         false,
         async (tp: string) => {
           const quoteTextId =
@@ -99,6 +100,7 @@ export function useRandomTextForm() {
               device_type: "mobile",
               pattern_type: "2",
               text_id: quoteTextId,
+              selected_position: position,
             });
             const enrollmentsLeft = store.authStore.enrollmentsLeft;
 
@@ -114,7 +116,25 @@ export function useRandomTextForm() {
             alert("Success", "You have been successfully verified");
             setFieldValue("quoteText", "");
           } catch (error) {
-            console.warn("error logging in", { error });
+            const statusCode = error?.response?.status;
+            console.log({ statusCode });
+            setFieldValue("quoteText", "");
+            tdna.reset();
+
+            if (statusCode === 403) {
+              alert("Failed", "This is not you typing is it?");
+              return;
+            }
+            if (statusCode === 404) {
+              alert("Failed", "This pattern has not been enrolled.");
+              return;
+            }
+            if (statusCode === 406) {
+              alert("Failed", "Wrong mobile pattern used.");
+              return;
+            }
+
+            alert("Error", "Something went wrong!");
           }
         }
       );
@@ -136,6 +156,20 @@ export function useRandomTextForm() {
         touched.quoteText && errors.quoteText ? errors.quoteText : undefined,
       error: Boolean(touched.quoteText && errors.quoteText),
       onSubmitEditing: () => submitForm(),
+    },
+    position: {
+      value: position,
+      onIncreasePress: () => {
+        if (position < 6) {
+          setPosition(position + 1);
+          // setFieldValue("position", values.position++);
+        }
+      },
+      onDecreasePress: () => {
+        if (position > 1) {
+          setPosition(position - 1);
+        }
+      },
     },
   };
 

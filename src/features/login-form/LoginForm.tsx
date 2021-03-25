@@ -16,43 +16,13 @@ import { constants } from "~/style/constants";
 import { shadow } from "~/utils/shadow";
 import { useLoginForm } from "./useLoginForm";
 import { useStore } from "~/mobx/utils/useStore";
-//@ts-ignore
-// import tdna from "typingdnarecorder-react-native";
 
 export const LoginForm = observer(function LoginForm() {
   const navigation = useNavigation<StackNavigationProp>();
   const store = useStore();
   const enrollmentsLeft = store.authStore.enrollmentsLeft;
-  // const emailNativeId = useRef(null);
-  // const passwordNativeId = useRef(null);
-
-  // const [
-  //   emailAndPasswordTypingPattern,
-  //   setEmailAndPasswordTypingPattern,
-  // ] = useState("");
 
   const { fields, isValid, submitForm } = useLoginForm();
-
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     tdna.initialize();
-  //     tdna.start();
-  //     tdna.addTarget(emailNativeId.current);
-  //     tdna.addTarget(passwordNativeId.current);
-  //   }, 2000);
-
-  //   return () => {
-  //     tdna.stop();
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   if (passwordNativeId != null) {
-  //     setTimeout(() => {
-  //       tdna.addTarget(passwordNativeId);
-  //     }, 2000);
-  //   }
-  // }, [passwordNativeId]);
 
   return (
     <LinearGradient colors={["#3b82f6", "white"]} style={{ flex: 1 }}>
@@ -116,12 +86,6 @@ export const LoginForm = observer(function LoginForm() {
 
           <Spacer medium />
           <TextInput
-            // ref={(ref) => {
-            //   if (ref != null) {
-            //     //@ts-ignore
-            //     emailNativeId.current = ref._nativeTag;
-            //   }
-            // }}
             label="email"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -130,12 +94,6 @@ export const LoginForm = observer(function LoginForm() {
           />
           <Spacer small />
           <TextInput
-            // ref={(ref) => {
-            //   if (ref != null) {
-            //     //@ts-ignore
-            //     passwordNativeId.current = ref._nativeTag;
-            //   }
-            // }}
             label="password"
             keyboardType="default"
             autoCapitalize="none"
@@ -148,33 +106,6 @@ export const LoginForm = observer(function LoginForm() {
             title={enrollmentsLeft > 0 ? "enroll" : "sign in"}
             disabled={!isValid}
             onPress={submitForm}
-
-            // onPress={async () => {
-            //   const emailAndPasswordValue = `${fields.email.value}${fields.password.value}`;
-
-            //   tdna.getTypingPattern(
-            //     1,
-            //     emailAndPasswordValue.length,
-            //     emailAndPasswordValue,
-            //     0,
-            //     (tp: string) => {
-            //       console.log({ emailAndPassword: tp });
-            //       setEmailAndPasswordTypingPattern(tp);
-            //     }
-            //   );
-
-            //   // tdna.getTypingPattern(
-            //   //   1,
-            //   //   emailAndPasswordValue.length,
-            //   //   emailAndPasswordValue,
-            //   //   0,
-            //   //   (tp: string) => {
-            //   //     console.log({ password: tp });
-            //   //     setPasswordTypingPattern(tp);
-            //   //   }
-            //   // );
-            //   await submitForm();
-            // }}
           />
         </View>
         <Spacer small />

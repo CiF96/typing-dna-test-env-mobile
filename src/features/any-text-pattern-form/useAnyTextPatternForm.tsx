@@ -10,23 +10,15 @@ import { getStringHash } from "~/mobx/utils/getStringHash";
 import { useAlert } from "~/hooks/useAlert";
 
 const validationSchema = yup.object({
-  emailRecipient: yup
-    .string()
-    .required("Email recipient is required")
-    .email("Email format invalid")
-    .max(50, "Email is too long")
-    .trim(),
-  emailSubject: yup.string().trim(),
-  emailText: yup.string().required("Email content is required").trim(),
+  text: yup.string().required("Email content is required").trim(),
 });
 
-export function useEmailForm() {
+export function useAnyTextPatternForm() {
   const store = useStore();
   const alert = useAlert();
-  const emailRecipientNativeId = useRef(null);
-  const emailSubjectNativeId = useRef(null);
   const emailTextNativeId = useRef(null);
   const emailTextRequirement = 120;
+  const [position, setPosition] = useState<number>(1);
 
   useEffect(() => {
     // DEV SOLUTION FOR FAST REFRESH REMOVE LATER
@@ -71,25 +63,23 @@ export function useEmailForm() {
     submitForm,
     touched,
     values,
-    setValues,
+    setFieldValue,
   } = useFormik({
     initialValues: {
-      emailRecipient: "",
-      emailSubject: "",
-      emailText: "",
+      text: "",
     },
     validationSchema,
     onSubmit(values, actions) {
       console.log({ actions });
-      const textId = getStringHash(values.emailText);
+      const textId = getStringHash(values.text);
       tdna.getTypingPattern(
         0,
-        values.emailText.length,
+        values.text.length,
         "",
         0,
         async (tp: string) => {
           const emailTextId =
-            textId.toString() + "-email-" + values.emailText.length;
+            textId.toString() + "-email-" + values.text.length;
 
           try {
             if (store.authStore.activeUser == null) {
@@ -101,6 +91,7 @@ export function useEmailForm() {
               device_type: "mobile",
               pattern_type: "0",
               text_id: emailTextId,
+              selected_position: position,
             });
             const enrollmentsLeft = store.authStore.enrollmentsLeft;
 
@@ -111,88 +102,78 @@ export function useEmailForm() {
                 "Success",
                 `You have successfully enrolled an any-text pattern.\nEnrollments left before verification: ${enrollmentsLeft}`
               );
-              setValues({
-                emailRecipient: "",
-                emailSubject: "",
-                emailText: "",
-              });
+              setFieldValue("text", "");
               return;
             }
 
             alert("Success", "You have been successfully verified");
-            setValues({
-              emailRecipient: "",
-              emailSubject: "",
-              emailText: "",
-            });
+            setFieldValue("text", "");
           } catch (error) {
-            console.warn("error logging in", { error });
+            const statusCode = error?.response?.status;
+            console.log({ statusCode });
+            setFieldValue("text", "");
+            tdna.reset();
+
+            if (statusCode === 403) {
+              alert("Failed", "This is not you typing is it?");
+              return;
+            }
+            if (statusCode === 404) {
+              alert("Failed", "This pattern has not been enrolled.");
+              return;
+            }
+            if (statusCode === 406) {
+              alert("Failed", "Wrong mobile pattern used.");
+              return;
+            }
+
+            alert("Error", "Something went wrong!");
           }
         }
       );
     },
   });
 
-  const [emailTextLeft, setEmailTextLeft] = useState<number>(
-    120 - values.emailText.length
+  const [textLeft, setEmailTextLeft] = useState<number>(
+    120 - values.text.length
   );
 
-  //TODO: MAKNI NEPOTREBNE FIELDOVE SUBJECT I TO - PREIMENUJ TO U ANY TEXT FORM ILI SLICNO
-
   const fields = {
-    emailRecipient: {
-      ref: (ref: any) => {
-        if (ref != null) {
-          //@ts-ignore
-          emailRecipientNativeId.current = ref._nativeTag;
-        }
-      },
-      value: values.emailRecipient,
-      onChangeText: handleChange("emailRecipient") as (text: string) => void,
-      onBlur: handleBlur("emailRecipient") as () => void,
-      caption:
-        touched.emailRecipient && errors.emailRecipient
-          ? errors.emailRecipient
-          : undefined,
-      error: Boolean(touched.emailRecipient && errors.emailRecipient),
-    },
-    emailSubject: {
-      ref: (ref: any) => {
-        if (ref != null) {
-          //@ts-ignore
-          emailSubjectNativeId.current = ref._nativeTag;
-        }
-      },
-      value: values.emailSubject,
-      onChangeText: handleChange("emailSubject") as (text: string) => void,
-      onBlur: handleBlur("emailSubject") as () => void,
-      caption:
-        touched.emailSubject && errors.emailSubject
-          ? errors.emailSubject
-          : undefined,
-      error: Boolean(touched.emailSubject && errors.emailSubject),
-    },
-    emailText: {
+    text: {
       ref: (ref: any) => {
         if (ref != null) {
           //@ts-ignore
           emailTextNativeId.current = ref._nativeTag;
         }
       },
-      value: values.emailText,
+      value: values.text,
       onChangeText: (text: string) => {
-        handleChange("emailText")(text);
+        handleChange("text")(text);
         setEmailTextLeft(emailTextRequirement - text.length);
       },
-      onBlur: handleBlur("emailText") as () => void,
+      onBlur: handleBlur("text") as () => void,
       caption:
-        touched.emailText && errors.emailText
-          ? errors.emailText
-          : `Email text should be at least 120 characters for best resultss. ${
-              emailTextLeft > 0 && `${emailTextLeft} left`
+        touched.text && errors.text
+          ? errors.text
+          : `Email text should be at least 120 characters for best results. ${
+              textLeft > 0 ? `${textLeft} left` : ""
             }`,
-      error: Boolean(touched.emailText && errors.emailText),
+      error: Boolean(touched.text && errors.text),
       onSubmitEditing: () => submitForm(),
+    },
+    position: {
+      value: position,
+      onIncreasePress: () => {
+        if (position < 6) {
+          setPosition(position + 1);
+          // setFieldValue("position", values.position++);
+        }
+      },
+      onDecreasePress: () => {
+        if (position > 1) {
+          setPosition(position - 1);
+        }
+      },
     },
   };
 

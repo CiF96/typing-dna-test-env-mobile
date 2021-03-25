@@ -1,13 +1,9 @@
 import * as yup from "yup";
-import { Alert } from "react-native";
-import { useCallback, useRef } from "react";
+import { Alert, TextInput } from "react-native";
+import { useRef } from "react";
 import { useFormik } from "formik";
 import { useMutation } from "react-query";
 import { useStore } from "~/mobx/utils/useStore";
-//@ts-ignore
-import tdna from "typingdnarecorder-react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { getStringHash } from "~/mobx/utils/getStringHash";
 
 const validationSchema = yup.object({
   email: yup
@@ -24,23 +20,6 @@ const validationSchema = yup.object({
 
 export function useLoginForm() {
   const store = useStore();
-  const emailNativeId = useRef(null);
-  const passwordNativeId = useRef(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      setTimeout(() => {
-        tdna.initialize();
-        tdna.start();
-        tdna.addTarget(emailNativeId.current);
-        tdna.addTarget(passwordNativeId.current);
-      }, 2000);
-
-      return () => {
-        tdna.stop();
-      };
-    }, [])
-  );
 
   const [login] = useMutation(store.authStore.login, {
     throwOnError: true,
@@ -55,80 +34,50 @@ export function useLoginForm() {
     submitForm,
     touched,
     values,
-    setValues,
   } = useFormik({
     initialValues: {
       email: "",
       password: "",
     },
     validationSchema,
-    onSubmit(values, actions) {
-      const emailAndPasswordValue = `${values.email}${values.password}`;
-      const textId = getStringHash(emailAndPasswordValue);
-      tdna.getTypingPattern(
-        1,
-        emailAndPasswordValue.length,
-        emailAndPasswordValue,
-        textId,
-        async (tp: string) => {
-          const emailAndPasswordTextId =
-            textId.toString() + "-auth-" + emailAndPasswordValue.length;
+    async onSubmit(values, actions) {
+      try {
+        await login({
+          email: values.email,
+          password: values.password,
+        });
+      } catch (error) {
+        console.warn("error logging in", { error });
 
-          try {
-            await login({
-              email: values.email,
-              password: values.password,
-              typing_pattern: tp,
-              pattern_type: "1",
-              device_type: "mobile",
-              text_id: emailAndPasswordTextId,
-            });
+        const statusCode = error?.response?.status;
 
-            setValues({ email: "", password: "" });
-            tdna.reset();
-
-            // navigation.navigate("Tabs");
-          } catch (error) {
-            console.warn("error logging in", { error });
-
-            const statusCode = error?.response?.status;
-
-            if (statusCode === 401) {
-              actions.setErrors({
-                email: "",
-                password: "Wrong email or password",
-              });
-            } else {
-              Alert.alert("Error", "Something went wrong");
-            }
-          }
+        if (statusCode === 401) {
+          actions.setErrors({
+            email: "",
+            password: "Wrong email or password",
+          });
+        } else {
+          Alert.alert("Error", "Something went wrong");
         }
-      );
+      }
     },
   });
 
+  const refs = {
+    passwordInput: useRef<TextInput>(null),
+  };
+
   const fields = {
     email: {
-      ref: (ref: any) => {
-        if (ref != null) {
-          //@ts-ignore
-          emailNativeId.current = ref._nativeTag;
-        }
-      },
       value: values.email,
       onChangeText: handleChange("email") as (text: string) => void,
       onBlur: handleBlur("email") as () => void,
       caption: touched.email && errors.email ? errors.email : undefined,
       error: Boolean(touched.email && errors.email),
-      // onSubmitEditing: () => refs.passwordInput?.current?.focus(),
+      onSubmitEditing: () => refs.passwordInput?.current?.focus(),
     },
     password: {
-      ref: (ref: any) => {
-        if (ref != null) {
-          //@ts-ignore
-          passwordNativeId.current = ref._nativeTag;
-        }
-      },
+      ref: refs.passwordInput,
       value: values.password,
       onChangeText: handleChange("password") as (text: string) => void,
       onBlur: handleBlur("password") as () => void,

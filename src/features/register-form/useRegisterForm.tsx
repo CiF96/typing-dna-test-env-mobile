@@ -1,15 +1,9 @@
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import { Alert, TextInput } from "react-native";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { useMutation } from "react-query";
 import { useStore } from "~/mobx/utils/useStore";
-import { useNavigation } from "@react-navigation/core";
-//@ts-ignore
-import tdna from "typingdnarecorder-react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { getStringHash } from "~/mobx/utils/getStringHash";
-
 const validationSchema = yup.object({
   firstName: yup
     .string()
@@ -40,24 +34,6 @@ const validationSchema = yup.object({
 
 export function useRegisterForm() {
   const store = useStore();
-  const navigation = useNavigation();
-  const emailNativeId = useRef(null);
-  const passwordNativeId = useRef(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      setTimeout(() => {
-        tdna.initialize();
-        tdna.start();
-        tdna.addTarget(emailNativeId.current);
-        tdna.addTarget(passwordNativeId.current);
-      }, 2000);
-
-      return () => {
-        tdna.stop();
-      };
-    }, [])
-  );
 
   const [register] = useMutation(store.authStore.register, {
     throwOnError: true,
@@ -81,62 +57,35 @@ export function useRegisterForm() {
       confirmPassword: "",
     },
     validationSchema,
-    onSubmit(values, actions) {
-      const emailAndPasswordValue = `${values.email}${values.password}`;
-      const textId = getStringHash(emailAndPasswordValue);
-      tdna.getTypingPattern(
-        1,
-        emailAndPasswordValue.length,
-        emailAndPasswordValue,
-        textId,
-        async (tp: string) => {
-          const emailAndPasswordTextId =
-            textId.toString() + "-auth-" + emailAndPasswordValue.length;
+    async onSubmit(values, actions) {
+      try {
+        await register({
+          name: values.firstName,
+          last_name: values.lastName,
+          email: values.email,
+          password: values.password,
+          password_confirmation: values.confirmPassword,
+        });
+      } catch (error) {
+        console.warn("error logging in", { error });
+        const statusCode = error?.response?.status;
 
-          try {
-            await register({
-              name: values.firstName,
-              last_name: values.lastName,
-              email: values.email,
-              password: values.password,
-              password_confirmation: values.confirmPassword,
-              typing_pattern: tp,
-              pattern_type: "1",
-              device_type: "mobile",
-              text_id: emailAndPasswordTextId,
-            });
-
-            navigation.navigate("LoginScreen");
-          } catch (error) {
-            console.warn("error logging in", { error });
-            tdna.reset();
-            const statusCode = error?.response?.status;
-
-            if (statusCode === 401) {
-              actions.setErrors({
-                email: "",
-                password: "Wrong email or password",
-              });
-            } else {
-              Alert.alert("Error", "Something went wrong");
-            }
-          }
+        if (statusCode === 401) {
+          actions.setErrors({
+            email: "",
+            password: "Wrong email or password",
+          });
+        } else {
+          Alert.alert("Error", "Something went wrong");
         }
-      );
-
-      // const response = await login({
-      //   email: values.email,
-      //   password: values.password,
-      //   typing_pattern: emailAndPasswordTypingPattern,
-      // });
-      // console.log({ response });
-      //do something
+      }
     },
   });
 
   const refs = {
     lastNameInput: useRef<TextInput>(null),
     emailInput: useRef<TextInput>(null),
+    passwordInput: useRef<TextInput>(null),
     confirmPasswordInput: useRef<TextInput>(null),
   };
 
@@ -161,25 +110,16 @@ export function useRegisterForm() {
       onSubmitEditing: () => refs.emailInput?.current?.focus(),
     },
     email: {
-      ref: (ref: any) => {
-        if (ref != null) {
-          //@ts-ignore
-          emailNativeId.current = ref._nativeTag;
-        }
-      },
+      ref: refs.emailInput,
       value: values.email,
       onChangeText: handleChange("email") as (text: string) => void,
       onBlur: handleBlur("email") as () => void,
       caption: touched.email && errors.email ? errors.email : undefined,
       error: Boolean(touched.email && errors.email), // our text input
+      onSubmitEditing: () => refs.passwordInput?.current?.focus(),
     },
     password: {
-      ref: (ref: any) => {
-        if (ref != null) {
-          //@ts-ignore
-          passwordNativeId.current = ref._nativeTag;
-        }
-      },
+      ref: refs.passwordInput,
       value: values.password,
       onChangeText: handleChange("password") as (text: string) => void,
       onBlur: handleBlur("password") as () => void,
@@ -189,6 +129,7 @@ export function useRegisterForm() {
       onSubmitEditing: () => refs.confirmPasswordInput?.current?.focus(),
     },
     confirmPassword: {
+      ref: refs.confirmPasswordInput,
       value: values.confirmPassword,
       onChangeText: handleChange("confirmPassword") as (text: string) => void,
       onBlur: handleBlur("confirmPassword") as () => void,

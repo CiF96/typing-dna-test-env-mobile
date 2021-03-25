@@ -11,12 +11,16 @@ import { LoginScreen } from "~/screens/LoginScreen";
 import { useStore } from "~/mobx/utils/useStore";
 import { Header } from "~/components/Header";
 import { RegisterScreen } from "~/screens/RegisterScreen";
-import { DashboardScreen } from "~/screens/DashboardScreen";
-import { EmailScreen } from "~/screens/EmailScreen";
-import { RandomTextScreen } from "~/screens/RandomTextScreen";
+import { SameTextScreen } from "~/screens/SameTextPatternScreen";
+import { AnyTextScreen } from "~/screens/AnyTextPatternScreen";
+import { ExtendedScreen } from "~/screens/ExtendedPatternScreen";
 import { constants } from "~/style/constants";
 import { Icon } from "~/components/Icon";
-import { TouchableOpacity } from "~/components/TouchableOpacity";
+import { View } from "~/components/View";
+import { Spacer } from "~/components/Spacer";
+import { useAlert } from "~/hooks/useAlert";
+import { IconButton } from "~/components/IconButton";
+import { EnrollmentPositionScreen } from "~/screens/EnrollmentPositionScreen";
 
 const Tabs = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -40,10 +44,26 @@ function renderAuthScreens() {
     </>
   );
 }
+function renderEnrollmentPositionScreen() {
+  return (
+    <>
+      <Stack.Screen
+        name="EnrollmentPositionScreen"
+        component={EnrollmentPositionScreen}
+        options={{ headerShown: false }}
+      />
+    </>
+  );
+}
 
 export const Router = observer(() => {
   const store = useStore();
+  const alert = useAlert();
+  const activeUser = store.authStore.activeUser;
   const isLoggedIn = store.authStore.isLoggedIn;
+  const isEnrollmentPositionSelected =
+    store.uiStore.selectedEnrollmentPositionId !== undefined;
+  const setEnrollmentPosition = store.uiStore.setEnrollmentPosition;
 
   const screenOptions: StackNavigationOptions = {
     header(props) {
@@ -51,17 +71,44 @@ export const Router = observer(() => {
     },
     headerRight() {
       return (
-        <TouchableOpacity
-          onPress={() => {
-            store.authStore.logout();
-          }}
-        >
-          <Icon
-            name="logout"
-            size={24}
-            color={constants.colorBackgroundLight}
+        <View flexDirectionRow alignItemsCenter>
+          <IconButton
+            iconName="delete-user"
+            iconSize={24}
+            iconColor={constants.colorBackgroundLight}
+            onPress={async () => {
+              if (activeUser == null) {
+                throw new Error("DEV - Active user is null or undefined");
+              }
+              await store.authStore.deleteUserTypingPatterns({
+                user_id: activeUser?.id,
+                device: "mobile",
+              });
+              alert(
+                "Success",
+                "You successfully deleted your typing patterns.",
+                [
+                  {
+                    text: "Ok",
+                    onPress: () => {
+                      setEnrollmentPosition(undefined);
+                    },
+                  },
+                ]
+              );
+            }}
           />
-        </TouchableOpacity>
+
+          <Spacer medium />
+          <IconButton
+            iconName="logout"
+            iconSize={24}
+            iconColor={constants.colorBackgroundLight}
+            onPress={() => {
+              store.authStore.logout();
+            }}
+          />
+        </View>
       );
     },
   };
@@ -71,13 +118,15 @@ export const Router = observer(() => {
       <Stack.Navigator headerMode="screen" screenOptions={screenOptions}>
         {isLoggedIn === false ? (
           renderAuthScreens()
+        ) : !isEnrollmentPositionSelected ? (
+          renderEnrollmentPositionScreen()
         ) : (
           <>
             <Stack.Screen name="Tabs" options={{ headerShown: false }}>
               {() => {
                 return (
                   <Tabs.Navigator
-                    initialRouteName="Email"
+                    // initialRouteName="Email"
                     tabBarOptions={{
                       tabStyle: {
                         backgroundColor: constants.colorBackgroundTheme,
@@ -87,7 +136,7 @@ export const Router = observer(() => {
                     }}
                   >
                     <Tabs.Screen
-                      name="Dashboard"
+                      name="Same Text"
                       options={{
                         tabBarIcon(props) {
                           return (
@@ -102,7 +151,7 @@ export const Router = observer(() => {
                             />
                           );
                         },
-                        tabBarLabel: "Dashboard",
+                        tabBarLabel: "Same Text",
                       }}
                     >
                       {() => {
@@ -112,16 +161,16 @@ export const Router = observer(() => {
                             screenOptions={screenOptions}
                           >
                             <DashboardStack.Screen
-                              name="DashboardScreen"
-                              component={DashboardScreen}
-                              options={{ title: "Dashboard" }}
+                              name="SameTextScreen"
+                              component={SameTextScreen}
+                              options={{ title: "Same Text pattern" }}
                             />
                           </DashboardStack.Navigator>
                         );
                       }}
                     </Tabs.Screen>
                     <Tabs.Screen
-                      name="Email"
+                      name="Any Text"
                       options={{
                         tabBarIcon(props) {
                           return (
@@ -136,7 +185,7 @@ export const Router = observer(() => {
                             />
                           );
                         },
-                        tabBarLabel: "Email",
+                        tabBarLabel: "Any Text",
                       }}
                     >
                       {() => {
@@ -146,16 +195,16 @@ export const Router = observer(() => {
                             screenOptions={screenOptions}
                           >
                             <DashboardStack.Screen
-                              name="EmailScreen"
-                              component={EmailScreen}
-                              options={{ title: "Email" }}
+                              name="AnyTextScreen"
+                              component={AnyTextScreen}
+                              options={{ title: "Any Text pattern" }}
                             />
                           </DashboardStack.Navigator>
                         );
                       }}
                     </Tabs.Screen>
                     <Tabs.Screen
-                      name="Random text"
+                      name="Extended"
                       options={{
                         tabBarIcon(props) {
                           return (
@@ -170,7 +219,7 @@ export const Router = observer(() => {
                             />
                           );
                         },
-                        tabBarLabel: "Random text",
+                        tabBarLabel: "Extended",
                       }}
                     >
                       {() => {
@@ -180,9 +229,9 @@ export const Router = observer(() => {
                             screenOptions={screenOptions}
                           >
                             <DashboardStack.Screen
-                              name="RandomTextScreen"
-                              component={RandomTextScreen}
-                              options={{ title: "Random text" }}
+                              name="ExtendedScreen"
+                              component={ExtendedScreen}
+                              options={{ title: "Extended pattern" }}
                             />
                           </DashboardStack.Navigator>
                         );

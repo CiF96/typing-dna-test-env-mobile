@@ -8,11 +8,12 @@ import { TextInput } from "~/components/TextInput";
 import { Divider } from "~/components/Divider";
 import { Spacer } from "~/components/Spacer";
 import { Button } from "~/components/Button";
-import { constants as styleConstants } from "~/style/constants";
-import { useEmailForm } from "./useEmailForm";
+import { constants, constants as styleConstants } from "~/style/constants";
+import { useAnyTextPatternForm } from "./useAnyTextPatternForm";
+import { IconButton } from "~/components/IconButton";
 
-export const EmailForm = observer(function EmailForm() {
-  const { fields, isValid, submitForm } = useEmailForm();
+export const AnyTextPatternForm = observer(function AnyTextPatternForm() {
+  const { fields, isValid, submitForm } = useAnyTextPatternForm();
   return (
     <View paddingSmall justifyContentCenter flex>
       <View
@@ -23,7 +24,7 @@ export const EmailForm = observer(function EmailForm() {
         }}
       >
         <View paddingVerticalSmall paddingHorizontalMedium>
-          <Text weightBold>Email</Text>
+          <Text weightBold>Any Text pattern form</Text>
           <Text sizeSmall colorDarkSofter>
             This is a mock email form. You should write an email of about 120
             characters for the best verification accuracy.
@@ -33,25 +34,42 @@ export const EmailForm = observer(function EmailForm() {
         <Divider />
         <View paddingMedium>
           <TextInput
-            label="recipient"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoCorrect={false}
-            {...fields.emailRecipient}
-          />
-          <Spacer small />
-          <TextInput label="subject" {...fields.emailSubject} />
-          <Spacer small />
-          <TextInput
-            label="email"
+            label="random text"
             multiline
             numberOfLines={3}
             autoCorrect={false}
             textAlignVertical="top"
             style={{ minHeight: styleConstants.windowWidth * 0.5 }}
-            {...fields.emailText}
+            {...fields.text}
           />
+          <Spacer medium />
+          <Text weightBold sizeLarge>
+            position
+          </Text>
           <Spacer small />
+          <View centerContent>
+            <View flexDirectionRow alignItemsCenter>
+              <IconButton
+                iconName="minus"
+                iconSize={30}
+                iconColor={constants.colorBackgroundDark}
+                onPress={fields.position.onDecreasePress}
+              />
+              <Spacer medium />
+              <Text weightBold style={{ fontSize: 30 }}>
+                {fields.position.value}
+              </Text>
+              <Spacer medium />
+              <IconButton
+                iconName="plus"
+                iconSize={30}
+                iconColor={constants.colorBackgroundDark}
+                onPress={fields.position.onIncreasePress}
+              />
+            </View>
+          </View>
+
+          <Spacer medium />
           <Button
             title="send"
             disabled={!isValid}
