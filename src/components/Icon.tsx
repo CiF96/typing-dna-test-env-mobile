@@ -22,6 +22,7 @@ export interface IconProps {
     | "chevron-down"
     | "chevron-up"
     | "chevron-right"
+    | "chevron-left"
     | "three-dots"
     | "edit"
     | "send"
@@ -227,16 +228,22 @@ export function Icon({
   }
 
   if (name === "chevron-right") {
-    const aspectRatio = 12 / 7;
-    const width = size;
-    const height = width / aspectRatio;
     return (
-      <Svg width={width} height={height} viewBox="0 0 7 12" fill="none">
+      <Svg width={size} height={size} fill={color} viewBox="0 0 16 16">
         <Path
           fillRule="evenodd"
-          clipRule="evenodd"
-          d="M0.293726 10.2933C-0.0972733 10.6842 -0.0972733 11.3162 0.293726 11.7072C0.684726 12.0982 1.31673 12.0982 1.70773 11.7072L6.70773 6.70725C7.09873 6.31625 7.09873 5.68425 6.70773 5.29325L1.70773 0.29325C1.31673 -0.09775 0.684726 -0.09775 0.293726 0.29325C-0.0972733 0.68425 -0.0972733 1.31625 0.293726 1.70725L4.58673 6.00025L0.293726 10.2933Z"
-          fill="#1A1A1A"
+          d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"
+        />
+      </Svg>
+    );
+  }
+
+  if (name === "chevron-left") {
+    return (
+      <Svg width={size} height={size} fill={color} viewBox="0 0 16 16">
+        <Path
+          fillRule="evenodd"
+          d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"
         />
       </Svg>
     );

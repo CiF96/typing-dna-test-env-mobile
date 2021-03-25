@@ -11,9 +11,15 @@ import { Button } from "~/components/Button";
 import { constants, constants as styleConstants } from "~/style/constants";
 import { useSameTextPatternForm } from "./useSameTextPatternForm";
 import { IconButton } from "~/components/IconButton";
+import { RadioGroup } from "~/components/RadioGroup";
+import { RadioButton } from "~/components/RadioButton";
+import { useStore } from "~/mobx/utils/useStore";
+import { StyleSheet } from "react-native";
 
 export const SameTextPatternForm = observer(function SameTextPatternForm() {
   const { fields, isValid, submitForm } = useSameTextPatternForm();
+  const store = useStore();
+  const enrollmentsLeft = store.authStore.enrollmentsLeft;
 
   return (
     <View paddingSmall justifyContentCenter flex>
@@ -27,14 +33,46 @@ export const SameTextPatternForm = observer(function SameTextPatternForm() {
         <View paddingVerticalSmall paddingHorizontalMedium>
           <Text weightBold>Same Text pattern form</Text>
           <Text sizeSmall colorDarkSofter>
-            This is a mock text area form. Here we are testing the typingDna
-            solution for pre-written text. You have to rewrite the presented
-            quote as accurate as possible.
+            This is a form we use to test the{" "}
+            <Text sizeSmall style={{ color: "blue" }} weightBold>
+              typingdna
+            </Text>{" "}
+            same-text patterns. Please re-write the credentials underneath
+            exactly as they say.
           </Text>
         </View>
 
         <Divider />
+        {enrollmentsLeft > 0 && (
+          <>
+            <Spacer medium />
+            <View centerContent>
+              <Text weightBold style={{ color: "green" }}>
+                Enrollments left before verification - {enrollmentsLeft}
+              </Text>
+            </View>
+          </>
+        )}
         <View paddingMedium>
+          <Text weightBold sizeSmall>
+            credentials
+          </Text>
+          <Spacer small />
+          <View
+            paddingMedium
+            style={{
+              borderRadius: 8,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: styleConstants.colorTextDarkSofter,
+            }}
+          >
+            <Text sizeSmall colorDarkSoft>
+              email: test@lloyds.design
+            </Text>
+            <Text sizeSmall colorDarkSoft>
+              password: test12345678
+            </Text>
+          </View>
           <TextInput
             label="email"
             keyboardType="email-address"
@@ -59,26 +97,47 @@ export const SameTextPatternForm = observer(function SameTextPatternForm() {
           <View centerContent>
             <View flexDirectionRow alignItemsCenter>
               <IconButton
-                iconName="minus"
+                iconName="chevron-left"
                 iconSize={30}
                 iconColor={constants.colorBackgroundDark}
                 onPress={fields.position.onDecreasePress}
               />
               <Spacer medium />
-              <Text weightBold style={{ fontSize: 30 }}>
+              <Text weightBold style={{ fontSize: 30, lineHeight: 40 }}>
                 {fields.position.value}
               </Text>
               <Spacer medium />
               <IconButton
-                iconName="plus"
+                iconName="chevron-right"
                 iconSize={30}
                 iconColor={constants.colorBackgroundDark}
                 onPress={fields.position.onIncreasePress}
               />
             </View>
           </View>
+          <Spacer medium />
+          <RadioGroup {...fields.selectedKeyboardType}>
+            <View flexDirectionRow alignItemsCenter>
+              <RadioButton value="tap" />
+              <Spacer medium />
+              <Text>Tap</Text>
+            </View>
+            <Spacer small />
+            <View flexDirectionRow alignItemsCenter>
+              <RadioButton value="swipe" />
+              <Spacer medium />
+              <Text>Swipe</Text>
+            </View>
+            <Spacer small />
+            <View flexDirectionRow alignItemsCenter>
+              <RadioButton value="other" />
+              <Spacer medium />
+              <Text>Other</Text>
+            </View>
+          </RadioGroup>
+          <Spacer medium />
           <Button
-            title="send"
+            title={enrollmentsLeft > 0 ? "enroll" : "verify"}
             disabled={!isValid}
             onPress={submitForm}
             style={{ alignSelf: "flex-end" }}

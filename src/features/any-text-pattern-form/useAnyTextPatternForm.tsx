@@ -79,7 +79,7 @@ export function useAnyTextPatternForm() {
         0,
         async (tp: string) => {
           const emailTextId =
-            textId.toString() + "-email-" + values.text.length;
+            "textId: " + textId.toString() + "-length: " + values.text.length;
 
           try {
             if (store.authStore.activeUser == null) {
@@ -93,21 +93,19 @@ export function useAnyTextPatternForm() {
               text_id: emailTextId,
               selected_position: position,
             });
+
             const enrollmentsLeft = store.authStore.enrollmentsLeft;
 
-            console.log({ enrollmentsLeft });
-
             if (enrollmentsLeft > 0) {
+              alert("Success", "Your pattern has been successfully enrolled.");
+            } else {
               alert(
                 "Success",
-                `You have successfully enrolled an any-text pattern.\nEnrollments left before verification: ${enrollmentsLeft}`
+                "Your pattern has been successfully saved and verified."
               );
-              setFieldValue("text", "");
-              return;
             }
-
-            alert("Success", "You have been successfully verified");
             setFieldValue("text", "");
+            tdna.reset();
           } catch (error) {
             const statusCode = error?.response?.status;
             console.log({ statusCode });
@@ -135,7 +133,7 @@ export function useAnyTextPatternForm() {
   });
 
   const [textLeft, setEmailTextLeft] = useState<number>(
-    120 - values.text.length
+    emailTextRequirement - values.text.length
   );
 
   const fields = {
@@ -155,11 +153,11 @@ export function useAnyTextPatternForm() {
       caption:
         touched.text && errors.text
           ? errors.text
-          : `Email text should be at least 120 characters for best results. ${
+          : `Rewritten text should be at least ${emailTextRequirement} characters long, for best results.\n${
               textLeft > 0 ? `${textLeft} left` : ""
             }`,
       error: Boolean(touched.text && errors.text),
-      onSubmitEditing: () => submitForm(),
+      // onSubmitEditing: () => submitForm(),
     },
     position: {
       value: position,

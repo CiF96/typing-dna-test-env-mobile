@@ -89,7 +89,22 @@ export function useExtendedPatternForm() {
         false,
         async (tp: string) => {
           const quoteTextId =
-            textId.toString() + "-random_text-" + values.quoteText.length;
+            "textId: " +
+            textId.toString() +
+            "-length: " +
+            values.quoteText.length;
+
+          const percentageOfRewrite = values.quoteText.length / quote.length;
+
+          if (percentageOfRewrite < 0.8) {
+            alert(
+              "Error",
+              "You need to write at least 80% of the given quote. Try again."
+            );
+            tdna.reset();
+            setFieldValue("quoteText", "");
+            return;
+          }
           try {
             if (store.authStore.activeUser == null) {
               throw new Error("DEV - active user is undefined or null");
@@ -102,19 +117,19 @@ export function useExtendedPatternForm() {
               text_id: quoteTextId,
               selected_position: position,
             });
+
             const enrollmentsLeft = store.authStore.enrollmentsLeft;
 
             if (enrollmentsLeft > 0) {
+              alert("Success", "Your pattern has been successfully enrolled.");
+            } else {
               alert(
                 "Success",
-                `You have successfully enrolled a type 2 pattern.\nEnrollments left before verification: ${enrollmentsLeft}`
+                "Your pattern has been successfully saved and verified."
               );
-              setFieldValue("quoteText", "");
-              return;
             }
-
-            alert("Success", "You have been successfully verified");
             setFieldValue("quoteText", "");
+            tdna.reset();
           } catch (error) {
             const statusCode = error?.response?.status;
             console.log({ statusCode });
@@ -155,7 +170,7 @@ export function useExtendedPatternForm() {
       caption:
         touched.quoteText && errors.quoteText ? errors.quoteText : undefined,
       error: Boolean(touched.quoteText && errors.quoteText),
-      onSubmitEditing: () => submitForm(),
+      // onSubmitEditing: () => submitForm(),
     },
     position: {
       value: position,

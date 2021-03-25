@@ -129,6 +129,16 @@ export const AuthStore = types
       return response;
     }),
 
+    readQuote: flow<Response<{ quote: any }>, []>(function* readQuote(): any {
+      const env = getEnv(self);
+
+      const response: AxiosResponse = yield env.http.get("/quote");
+
+      console.log({ response });
+
+      return response;
+    }),
+
     readTypingPatternData: flow<
       Response<{ typing_dna: any; enrollments_left: number }>,
       [
@@ -139,6 +149,7 @@ export const AuthStore = types
           pattern_type: "0" | "1" | "2";
           text_id: string;
           selected_position: number;
+          keyboard_type?: "tap" | "swipe" | "other";
         }
       ]
     >(function* readTypingPatternData(params): any {

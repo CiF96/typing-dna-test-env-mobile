@@ -12,9 +12,12 @@ import { constants, constants as styleConstants } from "~/style/constants";
 import { useExtendedPatternForm } from "./useExtendedPatternForm";
 import { StyleSheet } from "react-native";
 import { IconButton } from "~/components/IconButton";
+import { useStore } from "~/mobx/utils/useStore";
 
 export const ExtendedPatternForm = observer(function ExtendedPatternForm() {
   const { fields, isValid, submitForm } = useExtendedPatternForm();
+  const store = useStore();
+  const enrollmentsLeft = store.authStore.enrollmentsLeft;
 
   return (
     <View paddingSmall justifyContentCenter flex>
@@ -28,13 +31,26 @@ export const ExtendedPatternForm = observer(function ExtendedPatternForm() {
         <View paddingVerticalSmall paddingHorizontalMedium>
           <Text weightBold>Extended pattern form</Text>
           <Text sizeSmall colorDarkSofter>
-            This is a mock text area form. Here we are testing the typingDna
-            solution for pre-written text. You have to rewrite the presented
-            quote as accurate as possible.
+            This is a form we use to test the{" "}
+            <Text sizeSmall style={{ color: "blue" }} weightBold>
+              typingdna
+            </Text>{" "}
+            extended patterns. Please re-write the text below in to the text
+            field as accurate as possible.
           </Text>
         </View>
 
         <Divider />
+        {enrollmentsLeft > 0 && (
+          <>
+            <Spacer medium />
+            <View centerContent>
+              <Text weightBold style={{ color: "green" }}>
+                Enrollments left before verification - {enrollmentsLeft}
+              </Text>
+            </View>
+          </>
+        )}
         <View paddingMedium>
           <Text weightBold sizeSmall>
             quote to be rewritten
@@ -49,9 +65,9 @@ export const ExtendedPatternForm = observer(function ExtendedPatternForm() {
             }}
           >
             <Text sizeSmall colorDarkSoft>
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Maiores
-              impedit perferendis suscipit eaque, iste dolor cupiditate
-              blanditiis ratione.
+              I ran into Ku Klux Klan and the threat of hurricanes, and those
+              two things made me decide not to build on the Alabama coast, so we
+              came back to Memphis.
             </Text>
           </View>
           <Spacer small />
@@ -72,18 +88,18 @@ export const ExtendedPatternForm = observer(function ExtendedPatternForm() {
           <View centerContent>
             <View flexDirectionRow alignItemsCenter>
               <IconButton
-                iconName="minus"
+                iconName="chevron-left"
                 iconSize={30}
                 iconColor={constants.colorBackgroundDark}
                 onPress={fields.position.onDecreasePress}
               />
               <Spacer medium />
-              <Text weightBold style={{ fontSize: 30 }}>
+              <Text weightBold style={{ fontSize: 30, lineHeight: 40 }}>
                 {fields.position.value}
               </Text>
               <Spacer medium />
               <IconButton
-                iconName="plus"
+                iconName="chevron-right"
                 iconSize={30}
                 iconColor={constants.colorBackgroundDark}
                 onPress={fields.position.onIncreasePress}
@@ -91,7 +107,7 @@ export const ExtendedPatternForm = observer(function ExtendedPatternForm() {
             </View>
           </View>
           <Button
-            title="send"
+            title={enrollmentsLeft > 0 ? "enroll" : "verify"}
             disabled={!isValid}
             onPress={submitForm}
             style={{ alignSelf: "flex-end" }}

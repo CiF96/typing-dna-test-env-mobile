@@ -12,14 +12,19 @@ import { useAlert } from "~/hooks/useAlert";
 const validationSchema = yup.object({
   email: yup
     .string()
-    .required("Email is required")
-    .email("Email format invalid")
-    .max(50, "Email is too long")
+    .required("Field is required")
+    .oneOf(
+      ["test@lloyds.design"],
+      "The text you entered doesn't match the credential. Try again."
+    )
     .trim(),
   password: yup
     .string()
-    .required("Password is required")
-    .min(6, "Password too short"),
+    .required("Field is required")
+    .oneOf(
+      ["test12345678"],
+      "The text you entered doesn't match the credential. Try again."
+    ),
 });
 
 export function useSameTextPatternForm() {
@@ -28,6 +33,9 @@ export function useSameTextPatternForm() {
   const emailNativeId = useRef(null);
   const passwordNativeId = useRef(null);
   const [position, setPosition] = useState<number>(1);
+  const [selectedKeyboardType, setSelectedKeyboardType] = useState<
+    "tap" | "swipe" | "other"
+  >("tap");
 
   useEffect(() => {
     // DEV SOLUTION FOR FAST REFRESH REMOVE LATER
@@ -92,7 +100,10 @@ export function useSameTextPatternForm() {
         textId,
         async (tp: string) => {
           const emailAndPasswordTextId =
-            textId.toString() + "-auth-" + emailAndPasswordValue.length;
+            "textId: " +
+            textId.toString() +
+            "-length: " +
+            emailAndPasswordValue.length;
 
           try {
             if (store.authStore.activeUser == null) {
@@ -105,8 +116,18 @@ export function useSameTextPatternForm() {
               device_type: "mobile",
               text_id: emailAndPasswordTextId,
               selected_position: position,
+              keyboard_type: selectedKeyboardType,
             });
+            const enrollmentsLeft = store.authStore.enrollmentsLeft;
 
+            if (enrollmentsLeft > 0) {
+              alert("Success", "Your pattern has been successfully enrolled.");
+            } else {
+              alert(
+                "Success",
+                "Your pattern has been successfully saved and verified."
+              );
+            }
             setValues({ email: "", password: "" });
             tdna.reset();
           } catch (error) {
@@ -163,7 +184,7 @@ export function useSameTextPatternForm() {
       caption:
         touched.password && errors.password ? errors.password : undefined,
       error: Boolean(touched.password && errors.password),
-      onSubmitEditing: () => submitForm(),
+      // onSubmitEditing: () => submitForm(),
     },
     position: {
       value: position,
@@ -178,6 +199,10 @@ export function useSameTextPatternForm() {
           setPosition(position - 1);
         }
       },
+    },
+    selectedKeyboardType: {
+      selectedValue: selectedKeyboardType,
+      onChange: setSelectedKeyboardType,
     },
   };
 
