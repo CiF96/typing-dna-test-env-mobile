@@ -11,15 +11,18 @@ import { Button } from "~/components/Button";
 import { constants, constants as styleConstants } from "~/style/constants";
 import { useSameTextPatternForm } from "./useSameTextPatternForm";
 import { IconButton } from "~/components/IconButton";
-import { RadioGroup } from "~/components/RadioGroup";
-import { RadioButton } from "~/components/RadioButton";
 import { useStore } from "~/mobx/utils/useStore";
 import { StyleSheet } from "react-native";
 
 export const SameTextPatternForm = observer(function SameTextPatternForm() {
-  const { fields, isValid, submitForm } = useSameTextPatternForm();
+  const {
+    fields,
+    isValid,
+    submitForm,
+    resetTypingDna,
+  } = useSameTextPatternForm();
   const store = useStore();
-  const enrollmentsLeft = store.authStore.enrollmentsLeft;
+  const enrollmentsLeft = store.authStore.sameTextEnrollmentsLeft;
 
   return (
     <View paddingSmall justifyContentCenter flex>
@@ -54,6 +57,8 @@ export const SameTextPatternForm = observer(function SameTextPatternForm() {
           </>
         )}
         <View paddingMedium>
+          <Button title="reset" onPress={resetTypingDna} />
+          <Spacer small />
           <Text weightBold sizeSmall>
             credentials
           </Text>
@@ -78,6 +83,7 @@ export const SameTextPatternForm = observer(function SameTextPatternForm() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            disableFullscreenUI
             {...fields.email}
           />
           <Spacer small />
@@ -86,6 +92,7 @@ export const SameTextPatternForm = observer(function SameTextPatternForm() {
             keyboardType="default"
             autoCapitalize="none"
             autoCorrect={false}
+            disableFullscreenUI
             // secureTextEntry
             {...fields.password}
           />
@@ -115,27 +122,7 @@ export const SameTextPatternForm = observer(function SameTextPatternForm() {
               />
             </View>
           </View>
-          <Spacer medium />
-          <RadioGroup {...fields.selectedKeyboardType}>
-            <View flexDirectionRow alignItemsCenter>
-              <RadioButton value="tap" />
-              <Spacer medium />
-              <Text>Tap</Text>
-            </View>
-            <Spacer small />
-            <View flexDirectionRow alignItemsCenter>
-              <RadioButton value="swipe" />
-              <Spacer medium />
-              <Text>Swipe</Text>
-            </View>
-            <Spacer small />
-            <View flexDirectionRow alignItemsCenter>
-              <RadioButton value="other" />
-              <Spacer medium />
-              <Text>Other</Text>
-            </View>
-          </RadioGroup>
-          <Spacer medium />
+
           <Button
             title={enrollmentsLeft > 0 ? "enroll" : "verify"}
             disabled={!isValid}

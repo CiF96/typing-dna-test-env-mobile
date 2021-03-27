@@ -19,6 +19,9 @@ export function useAnyTextPatternForm() {
   const emailTextNativeId = useRef(null);
   const emailTextRequirement = 120;
   const [position, setPosition] = useState<number>(1);
+  const [selectedKeyboardType, setSelectedKeyboardType] = useState<
+    "tap" | "swipe"
+  >("tap");
 
   useEffect(() => {
     // DEV SOLUTION FOR FAST REFRESH REMOVE LATER
@@ -40,7 +43,6 @@ export function useAnyTextPatternForm() {
 
       return () => {
         console.warn("STOP EFFECT");
-        store.authStore.updateEnrollmentsLeft({ numberOfEnrollments: 0 });
         tdna.stop();
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,6 +55,10 @@ export function useAnyTextPatternForm() {
       throwOnError: true,
     }
   );
+
+  const resetTypingDna = () => {
+    tdna.reset();
+  };
 
   const {
     errors,
@@ -72,14 +78,21 @@ export function useAnyTextPatternForm() {
     onSubmit(values, actions) {
       console.log({ actions });
       const textId = getStringHash(values.text);
-      tdna.getTypingPattern(
+      tdna.getTypingPatternExtended(
         0,
-        values.text.length,
+        0,
         "",
         0,
+        emailTextNativeId.current,
+        false,
         async (tp: string) => {
           const emailTextId =
-            "textId: " + textId.toString() + "-length: " + values.text.length;
+            "textId: " +
+            textId.toString() +
+            "-length: " +
+            values.text.length +
+            "-keyboard type: " +
+            selectedKeyboardType;
 
           try {
             if (store.authStore.activeUser == null) {
@@ -92,9 +105,10 @@ export function useAnyTextPatternForm() {
               pattern_type: "0",
               text_id: emailTextId,
               selected_position: position,
+              keyboard_type: selectedKeyboardType,
             });
 
-            const enrollmentsLeft = store.authStore.enrollmentsLeft;
+            const enrollmentsLeft = store.authStore.anyTextEnrollmentsLeft;
 
             if (enrollmentsLeft > 0) {
               alert("Success", "Your pattern has been successfully enrolled.");
@@ -153,7 +167,7 @@ export function useAnyTextPatternForm() {
       caption:
         touched.text && errors.text
           ? errors.text
-          : `Rewritten text should be at least ${emailTextRequirement} characters long, for best results.\n${
+          : `Rewritten text should be at least ${emailTextRequirement} characters long, ${
               textLeft > 0 ? `${textLeft} left` : ""
             }`,
       error: Boolean(touched.text && errors.text),
@@ -173,6 +187,10 @@ export function useAnyTextPatternForm() {
         }
       },
     },
+    selectedKeyboardType: {
+      selectedValue: selectedKeyboardType,
+      onChange: setSelectedKeyboardType,
+    },
   };
 
   return {
@@ -180,5 +198,6 @@ export function useAnyTextPatternForm() {
     isSubmitting,
     isValid,
     submitForm,
+    resetTypingDna,
   };
 }

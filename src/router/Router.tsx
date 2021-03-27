@@ -128,6 +128,7 @@ export const Router = observer(() => {
                   <Tabs.Navigator
                     // initialRouteName="Email"
                     tabBarOptions={{
+                      keyboardHidesTabBar: true,
                       tabStyle: {
                         backgroundColor: constants.colorBackgroundTheme,
                       },

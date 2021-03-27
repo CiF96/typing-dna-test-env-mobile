@@ -16,11 +16,18 @@ import { useQuery } from "~/hooks/useQuery";
 import { StyleSheet } from "react-native";
 import { Spinner } from "~/components/Spinner";
 import { TouchableOpacity } from "~/components/TouchableOpacity";
+import { RadioGroup } from "~/components/RadioGroup";
+import { RadioButton } from "~/components/RadioButton";
 
 export const AnyTextPatternForm = observer(function AnyTextPatternForm() {
-  const { fields, isValid, submitForm } = useAnyTextPatternForm();
+  const {
+    fields,
+    isValid,
+    submitForm,
+    resetTypingDna,
+  } = useAnyTextPatternForm();
   const store = useStore();
-  const enrollmentsLeft = store.authStore.enrollmentsLeft;
+  const enrollmentsLeft = store.authStore.anyTextEnrollmentsLeft;
 
   const quoteQuery = useQuery("quoteQuery", (_key: any) => {
     return store.authStore.readQuote();
@@ -63,30 +70,36 @@ export const AnyTextPatternForm = observer(function AnyTextPatternForm() {
           </>
         )}
         <View paddingMedium>
-          <Text weightBold sizeSmall>
-            quote to be rewritten
-          </Text>
+          <Button title="reset" onPress={resetTypingDna} />
           <Spacer small />
-          <TouchableOpacity
-            onPress={() => {
-              quoteQuery.refetch();
-            }}
-            paddingMedium
-            style={{
-              borderRadius: 8,
-              borderWidth: StyleSheet.hairlineWidth,
-              borderColor: styleConstants.colorTextDarkSofter,
-            }}
-          >
-            {quoteQuery.isLoading ? (
-              <Spinner size="large" />
-            ) : (
-              <Text sizeSmall colorDarkSoft>
-                {quote}
+          {fields.selectedKeyboardType.selectedValue === "tap" && (
+            <>
+              <Text weightBold sizeSmall>
+                quote to be rewritten
               </Text>
-            )}
-          </TouchableOpacity>
-          <Spacer small />
+              <Spacer small />
+              <TouchableOpacity
+                onPress={() => {
+                  quoteQuery.refetch();
+                }}
+                paddingMedium
+                style={{
+                  borderRadius: 8,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: styleConstants.colorTextDarkSofter,
+                }}
+              >
+                {quoteQuery.isLoading ? (
+                  <Spinner size="large" />
+                ) : (
+                  <Text sizeSmall colorDarkSoft>
+                    {quote}
+                  </Text>
+                )}
+              </TouchableOpacity>
+              <Spacer small />
+            </>
+          )}
           <TextInput
             label="random text"
             multiline
@@ -94,6 +107,7 @@ export const AnyTextPatternForm = observer(function AnyTextPatternForm() {
             autoCorrect={false}
             textAlignVertical="top"
             style={{ minHeight: styleConstants.windowWidth * 0.5 }}
+            disableFullscreenUI
             {...fields.text}
           />
           <Spacer medium />
@@ -122,7 +136,24 @@ export const AnyTextPatternForm = observer(function AnyTextPatternForm() {
               />
             </View>
           </View>
-
+          <Spacer medium />
+          <Text weightBold sizeLarge>
+            experiment type
+          </Text>
+          <Spacer small />
+          <RadioGroup {...fields.selectedKeyboardType}>
+            <View flexDirectionRow alignItemsCenter>
+              <RadioButton value="tap" />
+              <Spacer medium />
+              <Text>Tap</Text>
+            </View>
+            <Spacer small />
+            <View flexDirectionRow alignItemsCenter>
+              <RadioButton value="swipe" />
+              <Spacer medium />
+              <Text>Swipe</Text>
+            </View>
+          </RadioGroup>
           <Spacer medium />
           <Button
             title={enrollmentsLeft > 0 ? "enroll" : "verify"}

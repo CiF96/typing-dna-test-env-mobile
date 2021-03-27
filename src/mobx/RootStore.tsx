@@ -6,6 +6,7 @@ import { I18n } from "./I18n";
 import { UserStore } from "./entities/user/UserStore";
 import { PersonStore } from "./entities/person/PersonStore";
 import { UIStore } from "./UIStore";
+import { TypingPatternStore } from "./TypingPatternStore";
 
 export const RootStore = types.model("RootStore", {
   configStore: types.optional(ConfigStore, {}),
@@ -13,6 +14,7 @@ export const RootStore = types.model("RootStore", {
   i18n: types.optional(I18n, {}),
   userStore: types.optional(UserStore, {}),
   personStore: types.optional(PersonStore, {}),
+  typingPatternStore: types.optional(TypingPatternStore, {}),
   uiStore: types.optional(UIStore, {}),
 });
 

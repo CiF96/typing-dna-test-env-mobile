@@ -15,9 +15,14 @@ import { IconButton } from "~/components/IconButton";
 import { useStore } from "~/mobx/utils/useStore";
 
 export const ExtendedPatternForm = observer(function ExtendedPatternForm() {
-  const { fields, isValid, submitForm } = useExtendedPatternForm();
+  const {
+    fields,
+    isValid,
+    submitForm,
+    resetTypingDna,
+  } = useExtendedPatternForm();
   const store = useStore();
-  const enrollmentsLeft = store.authStore.enrollmentsLeft;
+  const enrollmentsLeft = store.authStore.extendedEnrollmentsLeft;
 
   return (
     <View paddingSmall justifyContentCenter flex>
@@ -52,6 +57,8 @@ export const ExtendedPatternForm = observer(function ExtendedPatternForm() {
           </>
         )}
         <View paddingMedium>
+          <Button title="reset" onPress={resetTypingDna} />
+          <Spacer small />
           <Text weightBold sizeSmall>
             quote to be rewritten
           </Text>
@@ -78,6 +85,7 @@ export const ExtendedPatternForm = observer(function ExtendedPatternForm() {
             autoCorrect={false}
             textAlignVertical="top"
             style={{ minHeight: styleConstants.windowWidth * 0.5 }}
+            disableFullscreenUI
             {...fields.quoteText}
           />
           <Spacer medium />

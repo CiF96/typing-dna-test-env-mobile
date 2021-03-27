@@ -33,9 +33,6 @@ export function useSameTextPatternForm() {
   const emailNativeId = useRef(null);
   const passwordNativeId = useRef(null);
   const [position, setPosition] = useState<number>(1);
-  const [selectedKeyboardType, setSelectedKeyboardType] = useState<
-    "tap" | "swipe" | "other"
-  >("tap");
 
   useEffect(() => {
     // DEV SOLUTION FOR FAST REFRESH REMOVE LATER
@@ -57,7 +54,6 @@ export function useSameTextPatternForm() {
 
       return () => {
         console.warn("STOP FOCUS EFFECT");
-        store.authStore.updateEnrollmentsLeft({ numberOfEnrollments: 0 });
         setValues({ email: "", password: "" });
         tdna.stop();
       };
@@ -72,6 +68,10 @@ export function useSameTextPatternForm() {
       throwOnError: true,
     }
   );
+
+  const resetTypingDna = () => {
+    tdna.reset();
+  };
 
   const {
     errors,
@@ -116,9 +116,8 @@ export function useSameTextPatternForm() {
               device_type: "mobile",
               text_id: emailAndPasswordTextId,
               selected_position: position,
-              keyboard_type: selectedKeyboardType,
             });
-            const enrollmentsLeft = store.authStore.enrollmentsLeft;
+            const enrollmentsLeft = store.authStore.sameTextEnrollmentsLeft;
 
             if (enrollmentsLeft > 0) {
               alert("Success", "Your pattern has been successfully enrolled.");
@@ -200,10 +199,6 @@ export function useSameTextPatternForm() {
         }
       },
     },
-    selectedKeyboardType: {
-      selectedValue: selectedKeyboardType,
-      onChange: setSelectedKeyboardType,
-    },
   };
 
   return {
@@ -211,5 +206,6 @@ export function useSameTextPatternForm() {
     isSubmitting,
     isValid,
     submitForm,
+    resetTypingDna,
   };
 }

@@ -15,12 +15,9 @@ import { StackNavigationProp } from "~/router/RouterTypes";
 import { constants } from "~/style/constants";
 import { shadow } from "~/utils/shadow";
 import { useLoginForm } from "./useLoginForm";
-import { useStore } from "~/mobx/utils/useStore";
 
 export const LoginForm = observer(function LoginForm() {
   const navigation = useNavigation<StackNavigationProp>();
-  const store = useStore();
-  const enrollmentsLeft = store.authStore.enrollmentsLeft;
 
   const { fields, isValid, submitForm } = useLoginForm();
 
@@ -44,43 +41,21 @@ export const LoginForm = observer(function LoginForm() {
                 source={require("~/assets/typingdna-logo.png")}
               />
             </View>
-            {enrollmentsLeft > 0 ? (
-              <>
-                <Text sizeExtraLarge weightBold>
-                  enroll new typing pattern
-                </Text>
-                <Spacer extraSmall />
-                <Text sizeSmall alignCenter>
-                  Enrollments left before verification -{" "}
-                  <Text
-                    weightBold
-                    sizeSmall
-                    style={{ color: "green" }}
-                    alignCenter
-                  >
-                    {enrollmentsLeft}
-                  </Text>
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text sizeExtraLarge weightBold>
-                  sign in to your account
-                </Text>
-                <Text colorDarkSofter>
-                  or{" "}
-                  <Text
-                    weightBold
-                    colorTheme
-                    onPress={() => {
-                      navigation.navigate("RegisterScreen");
-                    }}
-                  >
-                    create your account
-                  </Text>
-                </Text>
-              </>
-            )}
+            <Text sizeExtraLarge weightBold>
+              sign in to your account
+            </Text>
+            <Text colorDarkSofter>
+              or{" "}
+              <Text
+                weightBold
+                colorTheme
+                onPress={() => {
+                  navigation.navigate("RegisterScreen");
+                }}
+              >
+                create your account
+              </Text>
+            </Text>
           </View>
           <Spacer medium />
 
@@ -102,11 +77,7 @@ export const LoginForm = observer(function LoginForm() {
             {...fields.password}
           />
           <Spacer medium />
-          <Button
-            title={enrollmentsLeft > 0 ? "enroll" : "sign in"}
-            disabled={!isValid}
-            onPress={submitForm}
-          />
+          <Button title="sign in" disabled={!isValid} onPress={submitForm} />
         </View>
         <Spacer small />
         <Text colorDarkSoft alignCenter>

@@ -1,5 +1,5 @@
 export const constants = {
-  BASE_URL: `https://7d5a1c04364f.ngrok.io/api`, //http://127.0.0.1:8000/api
+  BASE_URL: `https://32f8bc3c20e5.ngrok.io/api`, //http://127.0.0.1:8000/api
   ASYNC_STORAGE_KEYS: {
     TOKEN: "token",
     PREFERRED_LANGUAGE: "preferred language",

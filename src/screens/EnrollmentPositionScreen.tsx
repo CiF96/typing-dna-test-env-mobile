@@ -2,15 +2,33 @@ import { observer } from "mobx-react";
 import React from "react";
 import { Screen } from "~/components/Screen";
 import { Spacer } from "~/components/Spacer";
+import { Spinner } from "~/components/Spinner";
 import { Text } from "~/components/Text";
 import { TouchableOpacity } from "~/components/TouchableOpacity";
 import { View } from "~/components/View";
+import { useQuery } from "~/hooks/useQuery";
 import { useStore } from "~/mobx/utils/useStore";
 import { shadow } from "~/utils/shadow";
 
 export const EnrollmentPositionScreen = observer(
   function EnrollmentPositionScreen() {
     const store = useStore();
+    const userInfoQuery = useQuery("userInfo", (_key) => {
+      if (store.authStore.activeUser == null) {
+        throw new Error("DEV - Active user is null or undefined");
+      }
+      return store.authStore.readUserInfo({
+        user_id: store.authStore.activeUser.id,
+      });
+    });
+
+    if (userInfoQuery.isLoading) {
+      return (
+        <View aspectRatioOne centerContent>
+          <Spinner size="large" />
+        </View>
+      );
+    }
 
     const setEnrollmentPosition = store.uiStore.setEnrollmentPosition;
     return (

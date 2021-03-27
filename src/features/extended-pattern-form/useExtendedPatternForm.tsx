@@ -43,7 +43,6 @@ export function useExtendedPatternForm() {
 
       return () => {
         console.warn("STOP FOCUS EFFECT");
-        store.authStore.updateEnrollmentsLeft({ numberOfEnrollments: 0 });
         setFieldValue("quoteText", "");
         tdna.stop();
       };
@@ -58,6 +57,10 @@ export function useExtendedPatternForm() {
       throwOnError: true,
     }
   );
+
+  const resetTypingDna = () => {
+    tdna.reset();
+  };
 
   const {
     errors,
@@ -118,7 +121,7 @@ export function useExtendedPatternForm() {
               selected_position: position,
             });
 
-            const enrollmentsLeft = store.authStore.enrollmentsLeft;
+            const enrollmentsLeft = store.authStore.extendedEnrollmentsLeft;
 
             if (enrollmentsLeft > 0) {
               alert("Success", "Your pattern has been successfully enrolled.");
@@ -193,5 +196,6 @@ export function useExtendedPatternForm() {
     isSubmitting,
     isValid,
     submitForm,
+    resetTypingDna,
   };
 }
