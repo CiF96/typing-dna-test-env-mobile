@@ -22,7 +22,7 @@ const validationSchema = yup.object({
     .string()
     .required("Field is required")
     .oneOf(
-      ["test12345678"],
+      ["testingtyping123"],
       "The text you entered doesn't match the credential. Try again."
     ),
 });
@@ -33,6 +33,8 @@ export function useSameTextPatternForm() {
   const emailNativeId = useRef(null);
   const passwordNativeId = useRef(null);
   const [position, setPosition] = useState<number>(1);
+  const verificationCounts = store.typingPatternStore.verificationCounts;
+  const [isTypingDnaReady, setIsTypingDnaReady] = useState(false);
 
   useEffect(() => {
     // DEV SOLUTION FOR FAST REFRESH REMOVE LATER
@@ -44,18 +46,17 @@ export function useSameTextPatternForm() {
   useFocusEffect(
     useCallback(() => {
       setTimeout(() => {
-        console.warn("FOCUS EFFECT");
-
         tdna.initialize();
         tdna.start();
         tdna.addTarget(emailNativeId.current);
         tdna.addTarget(passwordNativeId.current);
+        setIsTypingDnaReady(true);
       }, 2000);
 
       return () => {
-        console.warn("STOP FOCUS EFFECT");
         setValues({ email: "", password: "" });
         tdna.stop();
+        setIsTypingDnaReady(false);
       };
 
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,7 +64,7 @@ export function useSameTextPatternForm() {
   );
 
   const [readTypingPatternData] = useMutation(
-    store.authStore.readTypingPatternData,
+    store.typingPatternStore.readTypingPatternData,
     {
       throwOnError: true,
     }
@@ -109,7 +110,7 @@ export function useSameTextPatternForm() {
             if (store.authStore.activeUser == null) {
               throw new Error("DEV - active user is undefined or null");
             }
-            await readTypingPatternData({
+            const response = await readTypingPatternData({
               user_id: store.authStore.activeUser?.id,
               typing_pattern: tp,
               pattern_type: "1",
@@ -117,18 +118,22 @@ export function useSameTextPatternForm() {
               text_id: emailAndPasswordTextId,
               selected_position: position,
             });
-            const enrollmentsLeft = store.authStore.sameTextEnrollmentsLeft;
 
-            if (enrollmentsLeft > 0) {
-              alert("Success", "Your pattern has been successfully enrolled.");
-            } else {
-              alert(
-                "Success",
-                "Your pattern has been successfully saved and verified."
-              );
-            }
             setValues({ email: "", password: "" });
             tdna.reset();
+            if (response?.data.is_save) {
+              alert("Success", "Your pattern has been successfully saved.");
+              return;
+            }
+            alert(
+              "Success",
+              "Your pattern has been successfully saved and verified."
+            );
+
+            verificationCounts.increasePositionVerificationCount({
+              patternType: 1,
+              positionId: position as 1 | 2 | 3 | 4 | 5 | 6,
+            });
           } catch (error) {
             const statusCode = error?.response?.status;
             console.log({ statusCode });
@@ -137,10 +142,18 @@ export function useSameTextPatternForm() {
 
             if (statusCode === 403) {
               alert("Failed", "This is not you typing is it?");
+              verificationCounts.increasePositionVerificationCount({
+                patternType: 1,
+                positionId: position as 1 | 2 | 3 | 4 | 5 | 6,
+              });
               return;
             }
             if (statusCode === 404) {
               alert("Failed", "This pattern has not been enrolled.");
+              verificationCounts.increasePositionVerificationCount({
+                patternType: 1,
+                positionId: position as 1 | 2 | 3 | 4 | 5 | 6,
+              });
               return;
             }
             if (statusCode === 406) {
@@ -207,5 +220,6 @@ export function useSameTextPatternForm() {
     isValid,
     submitForm,
     resetTypingDna,
+    isTypingDnaReady,
   };
 }

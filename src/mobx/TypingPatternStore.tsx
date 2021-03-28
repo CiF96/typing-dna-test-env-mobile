@@ -4,6 +4,7 @@ import {
   Instance,
   SnapshotIn,
   SnapshotOut,
+  cast,
 } from "mobx-state-tree";
 import { AxiosResponse } from "axios";
 
@@ -18,11 +19,101 @@ export interface TypingPatternStoreSnapshotIn
 export interface TypingPatternStoreSnapshotOut
   extends SnapshotOut<typeof TypingPatternStore> {}
 
+const VerificationCounts = types
+  .model("VerificationCounts", {
+    anyText: types.array(types.number),
+    sameText: types.array(types.number),
+    extended: types.array(types.number),
+  })
+  .actions((self) => ({
+    positionVerificationCount({
+      patternType,
+      positionId,
+    }: {
+      patternType: 0 | 1 | 2;
+      positionId: 1 | 2 | 3 | 4 | 5 | 6;
+    }) {
+      if (patternType === 0) {
+        return self.anyText[positionId - 1];
+      }
+      if (patternType === 1) {
+        return self.sameText[positionId - 1];
+      }
+      return self.extended[positionId - 1];
+    },
+  }))
+  .actions((self) => ({
+    async increasePositionVerificationCount({
+      patternType,
+      positionId,
+    }: {
+      patternType: 0 | 1 | 2;
+      positionId: 1 | 2 | 3 | 4 | 5 | 6;
+    }) {
+      const env = getEnv(self);
+      if (patternType === 0) {
+        self.anyText[positionId - 1]++;
+        await env.persistence.set("anyTextCount", self.anyText);
+
+        return;
+      }
+      if (patternType === 1) {
+        self.sameText[positionId - 1]++;
+        await env.persistence.set("sameTextCount", self.sameText);
+
+        return;
+      }
+      self.extended[positionId - 1]++;
+      await env.persistence.set("extendedCount", self.extended);
+
+      return;
+    },
+    async clearPatternVerificationCount({
+      patternType,
+    }: {
+      patternType: 0 | 1 | 2;
+    }) {
+      const env = getEnv(self);
+
+      if (patternType === 0) {
+        self.anyText = cast([0, 0, 0, 0, 0, 0]);
+        await env.persistence.set("anyTextCount", self.anyText);
+
+        return;
+      }
+      if (patternType === 1) {
+        self.sameText = cast([0, 0, 0, 0, 0, 0]);
+        await env.persistence.set("sameTextCount", self.sameText);
+
+        return;
+      }
+      self.extended = cast([0, 0, 0, 0, 0, 0]);
+      await env.persistence.set("extendedCount", self.extended);
+
+      return;
+    },
+    async clearAllVerificationCounts() {
+      const env = getEnv(self);
+      self.anyText = cast([0, 0, 0, 0, 0, 0]);
+      self.sameText = cast([0, 0, 0, 0, 0, 0]);
+      self.extended = cast([0, 0, 0, 0, 0, 0]);
+
+      await env.persistence.set("anyTextCount", self.anyText);
+      await env.persistence.set("sameTextCount", self.sameText);
+      await env.persistence.set("extendedCount", self.extended);
+    },
+  }));
+
 export const TypingPatternStore = types
   .model("TypingPatternStore", {
     anyTextEnrollmentsLeft: types.optional(types.number, 0),
     sameTextEnrollmentsLeft: types.optional(types.number, 0),
     extendedEnrollmentsLeft: types.optional(types.number, 0),
+    verificationCounts: types.optional(VerificationCounts, {
+      anyText: [0, 0, 0, 0, 0, 0],
+      sameText: [0, 0, 0, 0, 0, 0],
+      extended: [0, 0, 0, 0, 0, 0],
+    }),
   })
 
   .actions((self) => ({
@@ -49,7 +140,11 @@ export const TypingPatternStore = types
     }),
 
     readTypingPatternData: flow<
-      Response<{ typing_dna: any; enrollments_left: number }>,
+      Response<{
+        typing_dna: any;
+        enrollments_left: number;
+        is_save?: boolean | null;
+      }>,
       [
         {
           user_id: string;
@@ -120,6 +215,7 @@ export const TypingPatternStore = types
         {
           user_id: string;
           device: "mobile" | "desktop" | "all";
+          pattern_type?: "0" | "1" | "2";
         }
       ]
     >(function* deleteUserTypingPatterns(params): any {
@@ -134,5 +230,32 @@ export const TypingPatternStore = types
       });
 
       return response;
+    }),
+
+    afterAttach: flow(function* afterAttach(): any {
+      const env = getEnv(self);
+      const anyTextVerifications = yield env.persistence.get("anyTextCount");
+      const sameTextVerifications = yield env.persistence.get("sameTextCount");
+      const extendedVerifications = yield env.persistence.get("extendedCount");
+
+      self.verificationCounts.anyText =
+        cast(anyTextVerifications) ?? cast([0, 0, 0, 0, 0, 0]);
+      self.verificationCounts.sameText =
+        cast(sameTextVerifications) ?? cast([0, 0, 0, 0, 0, 0]);
+      self.verificationCounts.extended =
+        cast(extendedVerifications) ?? cast([0, 0, 0, 0, 0, 0]);
+
+      yield env.persistence.set(
+        "anyTextCount",
+        self.verificationCounts.anyText
+      );
+      yield env.persistence.set(
+        "sameTextCount",
+        self.verificationCounts.sameText
+      );
+      yield env.persistence.set(
+        "extendedCount",
+        self.verificationCounts.extended
+      );
     }),
   }));

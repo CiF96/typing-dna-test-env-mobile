@@ -80,10 +80,12 @@ export const Router = observer(() => {
               if (activeUser == null) {
                 throw new Error("DEV - Active user is null or undefined");
               }
-              await store.authStore.deleteUserTypingPatterns({
+              await store.typingPatternStore.deleteUserTypingPatterns({
                 user_id: activeUser?.id,
                 device: "mobile",
               });
+
+              store.typingPatternStore.verificationCounts.clearAllVerificationCounts();
               alert(
                 "Success",
                 "You successfully deleted your typing patterns.",

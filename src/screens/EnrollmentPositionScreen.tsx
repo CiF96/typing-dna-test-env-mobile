@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { Screen } from "~/components/Screen";
 import { Spacer } from "~/components/Spacer";
 import { Spinner } from "~/components/Spinner";
@@ -17,10 +17,12 @@ export const EnrollmentPositionScreen = observer(
       if (store.authStore.activeUser == null) {
         throw new Error("DEV - Active user is null or undefined");
       }
-      return store.authStore.readUserInfo({
+      return store.typingPatternStore.readUserInfo({
         user_id: store.authStore.activeUser.id,
       });
     });
+
+    useEffect(() => {}, []);
 
     if (userInfoQuery.isLoading) {
       return (

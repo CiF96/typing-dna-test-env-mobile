@@ -22,6 +22,9 @@ export function useAnyTextPatternForm() {
   const [selectedKeyboardType, setSelectedKeyboardType] = useState<
     "tap" | "swipe"
   >("tap");
+  const [isTypingDnaReady, setIsTypingDnaReady] = useState(false);
+
+  const verificationCounts = store.typingPatternStore.verificationCounts;
 
   useEffect(() => {
     // DEV SOLUTION FOR FAST REFRESH REMOVE LATER
@@ -33,24 +36,23 @@ export function useAnyTextPatternForm() {
   useFocusEffect(
     useCallback(() => {
       setTimeout(() => {
-        console.warn("EFFECT");
-
         tdna.initialize();
         tdna.start();
 
         tdna.addTarget(emailTextNativeId.current);
+        setIsTypingDnaReady(true);
       }, 2000);
 
       return () => {
-        console.warn("STOP EFFECT");
         tdna.stop();
+        setIsTypingDnaReady(false);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
   );
 
   const [readTypingPatternData] = useMutation(
-    store.authStore.readTypingPatternData,
+    store.typingPatternStore.readTypingPatternData,
     {
       throwOnError: true,
     }
@@ -98,7 +100,7 @@ export function useAnyTextPatternForm() {
             if (store.authStore.activeUser == null) {
               throw new Error("DEV - active user is undefined or null");
             }
-            await readTypingPatternData({
+            const response = await readTypingPatternData({
               user_id: store.authStore.activeUser?.id,
               typing_pattern: tp,
               device_type: "mobile",
@@ -108,18 +110,22 @@ export function useAnyTextPatternForm() {
               keyboard_type: selectedKeyboardType,
             });
 
-            const enrollmentsLeft = store.authStore.anyTextEnrollmentsLeft;
-
-            if (enrollmentsLeft > 0) {
-              alert("Success", "Your pattern has been successfully enrolled.");
-            } else {
-              alert(
-                "Success",
-                "Your pattern has been successfully saved and verified."
-              );
-            }
             setFieldValue("text", "");
             tdna.reset();
+
+            if (response?.data.is_save) {
+              alert("Success", "Your pattern has been successfully saved.");
+              return;
+            }
+            alert(
+              "Success",
+              "Your pattern has been successfully saved and verified."
+            );
+
+            verificationCounts.increasePositionVerificationCount({
+              patternType: 0,
+              positionId: position as 1 | 2 | 3 | 4 | 5 | 6,
+            });
           } catch (error) {
             const statusCode = error?.response?.status;
             console.log({ statusCode });
@@ -128,10 +134,18 @@ export function useAnyTextPatternForm() {
 
             if (statusCode === 403) {
               alert("Failed", "This is not you typing is it?");
+              verificationCounts.increasePositionVerificationCount({
+                patternType: 0,
+                positionId: position as 1 | 2 | 3 | 4 | 5 | 6,
+              });
               return;
             }
             if (statusCode === 404) {
               alert("Failed", "This pattern has not been enrolled.");
+              verificationCounts.increasePositionVerificationCount({
+                patternType: 0,
+                positionId: position as 1 | 2 | 3 | 4 | 5 | 6,
+              });
               return;
             }
             if (statusCode === 406) {
@@ -199,5 +213,6 @@ export function useAnyTextPatternForm() {
     isValid,
     submitForm,
     resetTypingDna,
+    isTypingDnaReady,
   };
 }
