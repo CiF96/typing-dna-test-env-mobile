@@ -17,9 +17,7 @@ export function useAnyTextPatternForm() {
   const store = useStore();
   const alert = useAlert();
   const emailTextNativeId = useRef(null);
-  // const enrollmentsLeft = store.typingPatternStore.anyTextEnrollmentsLeft;
   const emailTextRequirement = 140;
-  // const emailTextRequirement = enrollmentsLeft > 0 ? 140 : 120;
   const [position, setPosition] = useState<number>(1);
   const [selectedKeyboardType, setSelectedKeyboardType] = useState<
     "tap" | "swipe"
