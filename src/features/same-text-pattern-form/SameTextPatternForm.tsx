@@ -190,7 +190,9 @@ export const SameTextPatternForm = observer(function SameTextPatternForm() {
               <Button
                 title={enrollmentsLeft > 0 ? "enroll" : "verify"}
                 disabled={!isValid}
-                onPress={submitForm}
+                onPress={async () => {
+                  await submitForm();
+                }}
                 style={{ alignSelf: "flex-end" }}
               />
             </View>

@@ -38,18 +38,20 @@ export const Splash = ({ isReady }: { isReady: boolean }) => {
         ...StyleSheet.absoluteFillObject,
         opacity: containerOpacity,
         flex: 1,
-        backgroundColor: constants.colorBackgroundLight,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#DBEAFE",
       }}
     >
       <Animated.Image
-        source={require("~/assets/splash.png")}
+        source={require("~/assets/typingdna-logo.png")}
         onLoad={() => {
           setIsImageLoaded(true);
         }}
         style={{
           opacity: imageOpacity,
-          width: "100%",
-          height: "100%",
+          width: constants.windowWidth * 0.6,
+          height: constants.windowWidth * 0.6,
         }}
         resizeMode="cover"
       />

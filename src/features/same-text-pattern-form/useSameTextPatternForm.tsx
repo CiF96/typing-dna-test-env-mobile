@@ -90,7 +90,7 @@ export function useSameTextPatternForm() {
       password: "",
     },
     validationSchema,
-    onSubmit(values, actions) {
+    async onSubmit(values, actions) {
       console.log({ actions });
       const emailAndPasswordValue = `${values.email}${values.password}`;
       const textId = getStringHash(emailAndPasswordValue);

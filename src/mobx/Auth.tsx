@@ -56,8 +56,11 @@ export const AuthStore = types
     }),
 
     logout() {
+      const root = getRoot(self);
       self.token = undefined;
       self.activeUser = undefined;
+      root.typingPatternStore.verificationCounts.clearAllVerificationCounts();
+      root.uiStore.setEnrollmentPosition(undefined);
     },
   }))
   .actions((self) => ({

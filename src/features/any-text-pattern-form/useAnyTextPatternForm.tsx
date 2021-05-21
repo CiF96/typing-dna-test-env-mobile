@@ -17,7 +17,9 @@ export function useAnyTextPatternForm() {
   const store = useStore();
   const alert = useAlert();
   const emailTextNativeId = useRef(null);
-  const emailTextRequirement = 120;
+  // const enrollmentsLeft = store.typingPatternStore.anyTextEnrollmentsLeft;
+  const emailTextRequirement = 140;
+  // const emailTextRequirement = enrollmentsLeft > 0 ? 140 : 120;
   const [position, setPosition] = useState<number>(1);
   const [selectedKeyboardType, setSelectedKeyboardType] = useState<
     "tap" | "swipe"
@@ -77,7 +79,7 @@ export function useAnyTextPatternForm() {
       text: "",
     },
     validationSchema,
-    onSubmit(values, actions) {
+    async onSubmit(values, actions) {
       console.log({ actions });
       const textId = getStringHash(values.text);
       tdna.getTypingPatternExtended(

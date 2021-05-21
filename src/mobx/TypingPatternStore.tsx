@@ -132,7 +132,12 @@ export const TypingPatternStore = types
     readQuote: flow<Response<{ quote: any }>, []>(function* readQuote(): any {
       const env = getEnv(self);
 
-      const response: AxiosResponse = yield env.http.get("/quote");
+      const params = {
+        min_length: 140,
+        max_length: 180,
+      };
+
+      const response: AxiosResponse = yield env.http.get("/quote", { params });
 
       console.log({ response });
 

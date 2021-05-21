@@ -73,7 +73,7 @@ export function useExtendedPatternForm() {
       quoteText: "",
     },
     validationSchema,
-    onSubmit(values, actions) {
+    async onSubmit(values, actions) {
       console.log({ actions });
       const quote =
         "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Maiores impedit perferendis suscipit eaque, iste dolor cupiditate blanditiis ratione.";

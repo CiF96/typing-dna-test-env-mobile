@@ -218,9 +218,9 @@ export const AnyTextPatternForm = observer(function AnyTextPatternForm() {
               <Button
                 title={enrollmentsLeft > 0 ? "enroll" : "verify"}
                 disabled={!isValid}
-                onPress={() => {
-                  quoteQuery.refetch();
-                  submitForm();
+                onPress={async () => {
+                  await quoteQuery.refetch();
+                  await submitForm();
                 }}
               />
             </View>
